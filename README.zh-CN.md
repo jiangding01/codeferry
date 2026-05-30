@@ -360,6 +360,18 @@ pnpm run lint       # TypeScript 类型检查
 
 ---
 
+## 路线图
+
+完整的开发计划（v0.5.0–v1.0.0 特性规划）见 [ROADMAP.md](./ROADMAP.md)。
+
+---
+
+## 贡献
+
+欢迎提 Issue 和 PR。架构设计详情见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)。
+
+---
+
 ## License
 
 MIT © 2026

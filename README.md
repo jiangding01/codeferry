@@ -360,6 +360,18 @@ pnpm run lint       # TypeScript type check
 
 ---
 
+## Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) for the full development plan, including upcoming features for v0.5.0–v1.0.0.
+
+---
+
+## Contributing
+
+Issues and PRs are welcome. For architecture context, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
+---
+
 ## License
 
 MIT © 2026
