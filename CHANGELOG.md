@@ -2,6 +2,8 @@
 
 所有版本变更记录，遵循 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 格式和 [语义化版本](https://semver.org/lang/zh-CN/) 规范。
 
+未来版本的开发计划见 [ROADMAP.md](./ROADMAP.md)。
+
 ---
 
 ## [0.4.0] — 2026-05-30
@@ -94,14 +96,3 @@
 ### 单元测试
 - `extractor.test.ts`：7 个测试，覆盖组件提取、hash 一致性、依赖检测
 - `scanner.test.ts`：5 个测试，覆盖文件扫描、glob 过滤、hash 变更检测
-
----
-
-## 版本规划
-
-| 版本 | 主要内容 |
-|---|---|
-| **0.4.x** | bug 修复、稳定性提升 |
-| **0.5.0** | `drift config` 命令（技术栈手动更新），npm 正式发布 |
-| **0.6.0** | HTML 桥接映射策略，`drift map auto` 准确率提升 |
-| **1.0.0** | API 稳定，完整 E2E 测试，文档完善 |
