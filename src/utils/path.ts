@@ -1,0 +1,18 @@
+import { resolve } from 'node:path';
+import { homedir } from 'node:os';
+
+export function resolvePath(input: string): string {
+  if (input.startsWith('~')) {
+    return resolve(homedir(), input.slice(2));
+  }
+  return resolve(input);
+}
+
+export function relativeTo(base: string, filePath: string): string {
+  const resolved = resolvePath(filePath);
+  const resolvedBase = resolvePath(base);
+  if (resolved.startsWith(resolvedBase)) {
+    return resolved.slice(resolvedBase.length + 1);
+  }
+  return resolved;
+}

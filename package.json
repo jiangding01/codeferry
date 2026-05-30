@@ -1,0 +1,53 @@
+{
+  "name": "drift-cli",
+  "version": "0.4.0",
+  "description": "CLI tool for bidirectional sync between Claude Design and Claude Code projects",
+  "type": "module",
+  "bin": {
+    "drift": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "cli",
+    "claude",
+    "design",
+    "sync",
+    "drift"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "chalk": "^5.4.1",
+    "cli-table3": "^0.6.5",
+    "clipboardy": "^4.0.0",
+    "commander": "^13.1.0",
+    "diff": "^7.0.0",
+    "fast-glob": "^3.3.3",
+    "inquirer": "^12.6.0",
+    "ora": "^8.2.0",
+    "p-limit": "^6.2.0",
+    "zod": "^3.25.34"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.2",
+    "@types/node": "^22.15.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
+  }
+}
