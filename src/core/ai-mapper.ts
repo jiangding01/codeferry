@@ -59,6 +59,32 @@ Omit entries where confidence is below 0.5. If nothing matches, return an empty 
 
 // ── Prompt construction ──────────────────────────────────────────────────────
 
+/**
+ * Compact slug of a component name for filename similarity scoring.
+ * "UserProfile" → "userprofile", "dashboard-view" → "dashboardview"
+ */
+function nameSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Sort code files so those whose path contains any component name slug appear
+ * first. This ensures the most relevant files are included when the list is
+ * truncated to MAX_CODE_FILES_IN_PROMPT.
+ */
+function rankFilesByRelevance(files: string[], components: ComponentEntry[]): string[] {
+  const slugs = components.map((c) => nameSlug(c.name));
+  return [...files].sort((a, b) => {
+    const aLower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const bLower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const aMatch = slugs.some((s) => aLower.includes(s) || s.includes(aLower));
+    const bMatch = slugs.some((s) => bLower.includes(s) || s.includes(bLower));
+    if (aMatch && !bMatch) return -1;
+    if (!aMatch && bMatch) return 1;
+    return 0;
+  });
+}
+
 function buildMappingPrompt(
   components: ComponentEntry[],
   codeFiles: string[],
@@ -67,8 +93,9 @@ function buildMappingPrompt(
     .map((c, i) => `${i + 1}. ${c.name} (design file: ${c.designFile})`)
     .join('\n');
 
-  // Truncate code file list if too long
-  const filesShown = codeFiles.slice(0, MAX_CODE_FILES_IN_PROMPT);
+  // Rank files by relevance before truncating so the most likely matches stay visible
+  const ranked = rankFilesByRelevance(codeFiles, components);
+  const filesShown = ranked.slice(0, MAX_CODE_FILES_IN_PROMPT);
   const truncatedNote =
     codeFiles.length > MAX_CODE_FILES_IN_PROMPT
       ? `\n... and ${codeFiles.length - MAX_CODE_FILES_IN_PROMPT} more files not shown`
@@ -85,9 +112,17 @@ function buildMappingPrompt(
 
 // ── Response parsing ─────────────────────────────────────────────────────────
 
+/**
+ * Parse the Claude API response for a batch mapping request.
+ *
+ * @param validPaths Set of all code file paths provided in the prompt.
+ *   Any path returned by the AI that is NOT in this set is rejected —
+ *   hallucinated paths must never be written to the registry.
+ */
 function parseMappingResponse(
   raw: string,
   components: ComponentEntry[],
+  validPaths: Set<string>,
 ): AIMappingResult[] {
   // Strip markdown fences if model ignores the instruction
   const cleaned = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
@@ -118,6 +153,11 @@ function parseMappingResponse(
 
     const component = components[idx - 1];
     if (!component) continue;
+
+    // Guard: reject hallucinated paths not present in the provided file list.
+    // An unknown path written to registry would cause differ.ts to permanently
+    // ignore code-side changes (same failure mode as the P0-2 bug).
+    if (!validPaths.has(codePath)) continue;
 
     results.push({
       componentId: component.id,
@@ -155,6 +195,7 @@ async function mapBatch(
   model: string,
   components: ComponentEntry[],
   codeFiles: string[],
+  validPaths: Set<string>,
 ): Promise<AIMappingResult[]> {
   const response = await withRetry(() =>
     client.messages.create({
@@ -168,7 +209,7 @@ async function mapBatch(
   const block = response.content[0];
   if (!block || block.type !== 'text') return [];
 
-  return parseMappingResponse(block.text, components);
+  return parseMappingResponse(block.text, components, validPaths);
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -202,6 +243,9 @@ export async function suggestMappings(
   const maxConcurrency = config.ai?.maxConcurrency ?? 3;
   const limit = pLimit(maxConcurrency);
 
+  // Build once — shared across all batches to validate AI-returned paths
+  const validPaths = new Set(codeFiles);
+
   // Split components into batches
   const batches: ComponentEntry[][] = [];
   for (let i = 0; i < components.length; i += BATCH_SIZE) {
@@ -211,7 +255,7 @@ export async function suggestMappings(
   const tasks = batches.map((batch) =>
     limit(async () => {
       try {
-        const batchResults = await mapBatch(client, model, batch, codeFiles);
+        const batchResults = await mapBatch(client, model, batch, codeFiles, validPaths);
         for (const r of batchResults) {
           results.set(r.componentId, r);
         }

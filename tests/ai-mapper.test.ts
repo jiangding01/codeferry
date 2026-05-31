@@ -13,6 +13,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ComponentEntry, DriftConfig } from '../src/types/index.js';
 
 // ── Mock the Anthropic SDK ────────────────────────────────────────────────────
+// vi.mock is hoisted above all imports, so the mock is active when the module loads.
 
 const mockCreate = vi.fn();
 
@@ -21,6 +22,9 @@ vi.mock('@anthropic-ai/sdk', () => ({
     messages: { create: mockCreate },
   })),
 }));
+
+// Top-level import: vi.mock hoisting guarantees the mock is in place before this resolves.
+import { suggestMappings } from '../src/core/ai-mapper.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -65,7 +69,6 @@ describe('suggestMappings — no API key', () => {
   });
 
   it('returns empty map without calling the API', async () => {
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const result = await suggestMappings([makeEntry('Dashboard')], CODE_FILES, MOCK_CONFIG);
     expect(result.size).toBe(0);
     expect(mockCreate).not.toHaveBeenCalled();
@@ -79,7 +82,6 @@ describe('suggestMappings — with API key', () => {
   });
 
   it('returns empty map for empty component list', async () => {
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const result = await suggestMappings([], CODE_FILES, MOCK_CONFIG);
     expect(result.size).toBe(0);
     expect(mockCreate).not.toHaveBeenCalled();
@@ -99,7 +101,6 @@ describe('suggestMappings — with API key', () => {
       content: [{ type: 'text', text: responseJson }],
     });
 
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const result = await suggestMappings([makeEntry('Dashboard')], CODE_FILES, MOCK_CONFIG);
 
     expect(result.size).toBe(1);
@@ -124,7 +125,6 @@ describe('suggestMappings — with API key', () => {
       content: [{ type: 'text', text: responseJson }],
     });
 
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const result = await suggestMappings([makeEntry('Dashboard')], CODE_FILES, MOCK_CONFIG);
     expect(result.size).toBe(0);
   });
@@ -134,7 +134,6 @@ describe('suggestMappings — with API key', () => {
       content: [{ type: 'text', text: 'not valid json at all' }],
     });
 
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const result = await suggestMappings([makeEntry('Dashboard')], CODE_FILES, MOCK_CONFIG);
     expect(result.size).toBe(0);
   });
@@ -144,7 +143,6 @@ describe('suggestMappings — with API key', () => {
       content: [{ type: 'text', text: '[]' }],
     });
 
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const result = await suggestMappings([makeEntry('Dashboard')], CODE_FILES, MOCK_CONFIG);
     expect(result.size).toBe(0);
   });
@@ -163,7 +161,6 @@ describe('suggestMappings — with API key', () => {
       content: [{ type: 'text', text: `\`\`\`json\n${responseJson}\n\`\`\`` }],
     });
 
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const result = await suggestMappings(
       [makeEntry('Header', 'components/Header.jsx')],
       CODE_FILES,
@@ -194,7 +191,6 @@ describe('suggestMappings — with API key', () => {
       content: [{ type: 'text', text: responseJson }],
     });
 
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     const components = [
       makeEntry('Dashboard'),
       makeEntry('Header', 'components/Header.jsx'),
@@ -206,10 +202,27 @@ describe('suggestMappings — with API key', () => {
     expect(result.get('components/Header.jsx::Header')!.codePath).toBe('src/components/ui/Header.tsx');
   });
 
+  it('rejects AI-returned codePath not present in the provided file list (hallucination guard)', async () => {
+    // AI returns a path that does not exist in CODE_FILES — must be silently discarded
+    const responseJson = JSON.stringify([
+      {
+        componentIndex: 1,
+        codePath: 'src/hallucinated/NonExistent.tsx',
+        confidence: 0.95,
+        reasoning: 'Hallucinated path',
+      },
+    ]);
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: responseJson }],
+    });
+
+    const result = await suggestMappings([makeEntry('Dashboard')], CODE_FILES, MOCK_CONFIG);
+    expect(result.size).toBe(0); // hallucinated path rejected
+  });
+
   it('swallows per-batch API errors without throwing', async () => {
     mockCreate.mockRejectedValueOnce(new Error('Network error'));
 
-    const { suggestMappings } = await import('../src/core/ai-mapper.js');
     // Should resolve (not throw), returning empty map
     await expect(
       suggestMappings([makeEntry('Dashboard')], CODE_FILES, MOCK_CONFIG),

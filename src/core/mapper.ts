@@ -141,14 +141,29 @@ export async function buildHtmlBridgeIndex(designRoot: string): Promise<HtmlBrid
     }
 
     // ── Step 2: extract <script src="..."> ────────────────────────────────────
-    const scriptSrcRe = /<script[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
-    const entrySrcs: string[] = [];
-    let m: RegExpExecArray | null;
-    // eslint-disable-next-line no-cond-assign
-    while ((m = scriptSrcRe.exec(htmlContent)) !== null) {
-      const src = m[1];
-      if (src) entrySrcs.push(src);
+    // Prefer type="module" scripts (Vite / Claude Design generates these).
+    // Fall back to any <script src> whose path ends with a JS/TS extension.
+    const collectSrcs = (re: RegExp): string[] => {
+      const srcs: string[] = [];
+      let m: RegExpExecArray | null;
+      re.lastIndex = 0;
+      // eslint-disable-next-line no-cond-assign
+      while ((m = re.exec(htmlContent)) !== null) {
+        if (m[1]) srcs.push(m[1]);
+      }
+      return srcs;
+    };
+
+    const moduleScriptRe = /<script[^>]*\btype=["']module["'][^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
+    const anyScriptRe = /<script[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
+
+    let entrySrcs = collectSrcs(moduleScriptRe);
+    if (entrySrcs.length === 0) {
+      // Fallback: any <script src> pointing to a JS/TS file (not a CDN polyfill or .map)
+      entrySrcs = collectSrcs(anyScriptRe).filter((s) => /\.(jsx?|tsx?|mjs)(\?.*)?$/.test(s));
     }
+
+    let m: RegExpExecArray | null;
 
     if (entrySrcs.length === 0) return index;
 
@@ -226,13 +241,19 @@ function strategyHtmlBridge(
   let designSegments = bridgeIndex.get(designPathNorm);
 
   if (!designSegments) {
-    // Fallback: match by basename (last segment)
+    // Fallback: match by basename (last segment).
+    // Collect ALL matches — only use the hint when exactly one entry matches.
+    // Ambiguous cases (two files named "Button.jsx" in different dirs) get no hint
+    // rather than silently using the wrong path segments.
     const basename = designPathNorm.split('/').pop() ?? '';
+    const basenameMatches: string[][] = [];
     for (const [key, segs] of bridgeIndex) {
       if (key.split('/').pop() === basename) {
-        designSegments = segs;
-        break;
+        basenameMatches.push(segs);
       }
+    }
+    if (basenameMatches.length === 1) {
+      designSegments = basenameMatches[0];
     }
   }
 

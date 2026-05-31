@@ -494,7 +494,13 @@ export async function mapSuggestCommand(opts: { noAi?: boolean; workspace?: stri
 
   // ── Step 4: Interactive review ───────────────────────────────────────────────
 
-  const accepted: Array<{ component: ComponentEntry; codePath: string }> = [];
+  interface AcceptedMapping {
+    component: ComponentEntry;
+    codePath: string;
+    mappingType: 'auto' | 'manual';
+    mappingConfidence: number;
+  }
+  const accepted: AcceptedMapping[] = [];
 
   for (const suggestion of suggestions) {
     const pct = Math.round(suggestion.confidence * 100);
@@ -522,10 +528,20 @@ export async function mapSuggestCommand(opts: { noAi?: boolean; workspace?: stri
         message: `输入代码文件路径（相对于 code.root: ${config.code.root}）：`,
         validate: (v: string) => v.trim().length > 0 || '路径不能为空',
       }]);
-      accepted.push({ component: suggestion.component, codePath: customPath.trim() });
+      accepted.push({
+        component: suggestion.component,
+        codePath: customPath.trim(),
+        mappingType: 'manual',
+        mappingConfidence: 1.0,
+      });
     } else {
-      // accept
-      accepted.push({ component: suggestion.component, codePath: suggestion.codePath });
+      // accept — preserve the AI/auto confidence so map list shows accurate quality
+      accepted.push({
+        component: suggestion.component,
+        codePath: suggestion.codePath,
+        mappingType: 'auto',
+        mappingConfidence: suggestion.confidence,
+      });
     }
   }
 
@@ -541,7 +557,7 @@ export async function mapSuggestCommand(opts: { noAi?: boolean; workspace?: stri
 
   const newlyMapped = new Set<string>();
 
-  for (const { component, codePath } of accepted) {
+  for (const { component, codePath, mappingType, mappingConfidence } of accepted) {
     const entry = registry.components[component.id];
     if (!entry) continue;
 
@@ -555,8 +571,8 @@ export async function mapSuggestCommand(opts: { noAi?: boolean; workspace?: stri
 
     entry.codeFiles = [codePath];
     entry.codeHash = codeHash;
-    entry.mappingType = 'auto';
-    entry.mappingConfidence = 0;
+    entry.mappingType = mappingType;
+    entry.mappingConfidence = mappingConfidence;
 
     newlyMapped.add(component.id);
   }
