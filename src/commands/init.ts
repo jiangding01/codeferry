@@ -182,8 +182,13 @@ export async function initCommand(options: InitOptions): Promise<void> {
   // Step 1: create workspace directory
   const s1 = spinner(`创建工作区 '${wsName}'...`);
   s1.start();
-  await manager.create(wsName).catch(() => store.init()); // if already exists (--force), just init
-  await store.init();
+  if (options.force && await store.exists()) {
+    // --force on existing workspace: just re-init subdirs (no name validation needed)
+    await store.init();
+  } else {
+    // New workspace: create directory structure and set as current
+    await manager.create(wsName);
+  }
   s1.succeed(`已创建工作区 '${wsName}'`);
 
   // Step 2: detect stack (with interactive confirmation)

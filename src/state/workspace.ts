@@ -85,11 +85,11 @@ export class WorkspaceManager {
     return this.getCurrentWorkspace();
   }
 
-  async getStore(flagOverride?: string): Promise<{ store: StateStore; workspaceName: string }> {
-    await this.migrateIfNeeded();
+  async getStore(flagOverride?: string): Promise<{ store: StateStore; workspaceName: string; migrated: boolean }> {
+    const migrated = await this.migrateIfNeeded();
     const name = await this.resolveWorkspace(flagOverride);
     const wsPath = this.workspacePath(name);
-    return { store: new StateStore(wsPath), workspaceName: name };
+    return { store: new StateStore(wsPath), workspaceName: name, migrated };
   }
 
   async create(name: string): Promise<string> {
@@ -97,15 +97,16 @@ export class WorkspaceManager {
     if (error) throw new Error(error);
 
     const wsPath = this.workspacePath(name);
+
+    // Check if workspace already exists (access succeeds → already exists)
+    let alreadyExists = false;
     try {
       await access(wsPath);
-      throw new Error(`工作区 "${name}" 已存在`);
-    } catch (err: unknown) {
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-        if (err instanceof Error && err.message.includes('已存在')) throw err;
-        throw err;
-      }
+      alreadyExists = true;
+    } catch {
+      // ENOENT — workspace does not exist yet, proceed
     }
+    if (alreadyExists) throw new Error(`工作区 "${name}" 已存在`);
 
     await mkdir(join(wsPath, 'snapshots'), { recursive: true });
     await mkdir(join(wsPath, 'history'), { recursive: true });
@@ -134,6 +135,9 @@ export class WorkspaceManager {
       const next = remaining.includes('default') ? 'default' : remaining[0];
       if (next) {
         await this.writeState({ version: '1.0', currentWorkspace: next });
+      } else {
+        // All workspaces removed — delete state.json so next init starts fresh
+        await rm(this.statePath(), { force: true });
       }
     }
   }

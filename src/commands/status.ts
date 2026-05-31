@@ -43,14 +43,14 @@ function byStatus(
     .filter((e): e is ComponentEntry => e !== undefined);
 }
 
-function printSummaryLine(summary: DiffResult['summary']): void {
+function printSummaryLine(summary: DiffResult['summary'], workspaceName: string): void {
   const total =
     summary.synced + summary.designAhead + summary.codeAhead +
     summary.conflicts + summary.neverSynced + summary.newDesign;
   const mapped = total - summary.newDesign;
 
   console.log();
-  console.log(chalk.bold('  drift status') + chalk.gray(' — design ↔ code'));
+  console.log(chalk.bold('  codeferry status') + chalk.gray(` — workspace: ${workspaceName}`));
   console.log();
   console.log(
     `  ${chalk.gray('Totals:')} ${chalk.bold(String(mapped))} mapped · ` +
@@ -135,7 +135,7 @@ export async function statusCommand(opts: StatusOptions = {}): Promise<void> {
   const diffResult = computeAllStatuses(currentRegistry);
   const { summary } = diffResult;
 
-  printSummaryLine(summary);
+  printSummaryLine(summary, workspaceName);
 
   // Apply filter if provided
   const filterStatus = opts.filter;
