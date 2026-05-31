@@ -55,6 +55,8 @@ npm install --save-dev drift-cli
 
 ## Quick Start
 
+> **Looking for detailed examples?** → [Complete Usage Guide](./docs/USAGE.md) covers every scenario with annotated terminal output, including conflict resolution, batch sync, code→design reverse sync, and troubleshooting.
+
 ### 1. Initialize
 
 ```bash
@@ -360,6 +362,18 @@ pnpm run lint       # TypeScript type check
 
 ---
 
+## Documentation
+
+| Document | Description |
+|---|---|
+| [Complete Usage Guide](./docs/USAGE.md) | Every scenario with annotated terminal output |
+| [Architecture](./docs/ARCHITECTURE.md) | System design, module breakdown, data model |
+| [Roadmap](./ROADMAP.md) | Development plan: v0.5.0 → v1.0.0 |
+| [Changelog](./CHANGELOG.md) | Release history |
+| [Contributing](./CONTRIBUTING.md) | Development setup and PR process |
+
+---
+
 ## Roadmap
 
 See [ROADMAP.md](./ROADMAP.md) for the full development plan, including upcoming features for v0.5.0–v1.0.0.
@@ -369,6 +383,8 @@ See [ROADMAP.md](./ROADMAP.md) for the full development plan, including upcoming
 ## Contributing
 
 Issues and PRs are welcome. For architecture context, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
+For development setup, commit style, and PR process, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ---
 

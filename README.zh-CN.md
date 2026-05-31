@@ -55,6 +55,8 @@ npm install --save-dev drift-cli
 
 ## 快速上手
 
+> **需要详细使用示例？** → [完整使用教程](./docs/USAGE.zh-CN.md) 覆盖所有场景，包含带注释的终端输出，涵盖冲突解决、批量同步、反向同步（code→design）和常见问题排查。
+
 ### 1. 初始化
 
 ```bash
@@ -360,6 +362,18 @@ pnpm run lint       # TypeScript 类型检查
 
 ---
 
+## 文档索引
+
+| 文档 | 说明 |
+|---|---|
+| [完整使用教程](./docs/USAGE.zh-CN.md) | 所有场景的完整演练，含带注释的终端输出 |
+| [架构设计](./docs/ARCHITECTURE.md) | 系统设计、模块拆分、数据模型 |
+| [路线图](./ROADMAP.md) | 开发计划：v0.5.0 → v1.0.0 |
+| [更新日志](./CHANGELOG.md) | 版本发布历史 |
+| [贡献指南](./CONTRIBUTING.md) | 开发环境搭建和 PR 流程 |
+
+---
+
 ## 路线图
 
 完整的开发计划（v0.5.0–v1.0.0 特性规划）见 [ROADMAP.md](./ROADMAP.md)。
@@ -369,6 +383,8 @@ pnpm run lint       # TypeScript 类型检查
 ## 贡献
 
 欢迎提 Issue 和 PR。架构设计详情见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)。
+
+开发环境搭建、提交规范和 PR 流程详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
 ---
 
