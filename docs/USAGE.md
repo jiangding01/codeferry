@@ -1,6 +1,6 @@
 [English](./USAGE.md) | [简体中文](./USAGE.zh-CN.md)
 
-# drift-cli — Complete Usage Guide
+# drift-sync — Complete Usage Guide
 
 > This guide walks through every feature and scenario with annotated terminal output.  
 > For a quick overview, see the [README](../README.md).
@@ -58,7 +58,7 @@
       shared/index.tsx
 ```
 
-> **Claude Design exports** a flat JSX file with zero imports, using browser-compiled Babel. One file often contains multiple page-level components. drift-cli understands this format natively.
+> **Claude Design exports** a flat JSX file with zero imports, using browser-compiled Babel. One file often contains multiple page-level components. drift-sync understands this format natively.
 
 ---
 
@@ -68,10 +68,10 @@
 
 ```bash
 # npm
-npm install -g drift-cli
+npm install -g drift-sync
 
 # pnpm
-pnpm add -g drift-cli
+pnpm add -g drift-sync
 
 # Verify
 drift --version
@@ -81,15 +81,15 @@ drift --version
 ### Local (per project)
 
 ```bash
-npm install --save-dev drift-cli
+npm install --save-dev drift-sync
 # Then use: npx drift <command>
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-cli.git
-cd drift-cli
+git clone https://github.com/JiangDing1990/drift-sync.git
+cd drift-sync
 pnpm install
 pnpm run build
 npm link     # makes `drift` available globally
@@ -209,7 +209,7 @@ drift init --design ~/Downloads/my-design --code ~/my-project --skip-detect
 
 ## 4. Component Mapping — `drift map`
 
-Mapping connects design components to their code counterparts. Without a mapping, drift-cli cannot generate sync prompts.
+Mapping connects design components to their code counterparts. Without a mapping, drift-sync cannot generate sync prompts.
 
 ### Step 1 — Run auto-mapping
 
@@ -734,7 +734,7 @@ drift status
     ...
 ```
 
-These files appear in the status output but drift-cli won't try to sync them unless you explicitly map them.
+These files appear in the status output but drift-sync won't try to sync them unless you explicitly map them.
 
 **Option 1 — Map to an existing design component:**
 
@@ -742,7 +742,7 @@ These files appear in the status output but drift-cli won't try to sync them unl
 drift map set "other-pages.jsx::HelpPage" "src/app/help/page.tsx"
 ```
 
-**Option 2 — Leave unmapped (drift-cli will track them as `new-code` but do nothing):**
+**Option 2 — Leave unmapped (drift-sync will track them as `new-code` but do nothing):**
 
 No action needed. They'll stay as `new-code` until you map them.
 
@@ -885,7 +885,7 @@ drift log --status done             # only completed syncs
 
 ### Customizing include/exclude globs
 
-By default, drift-cli scans `**/*.jsx`, `**/*.tsx`, `**/*.ts` on both sides. To exclude specific directories:
+By default, drift-sync scans `**/*.jsx`, `**/*.tsx`, `**/*.ts` on both sides. To exclude specific directories:
 
 ```jsonc
 "code": {
@@ -956,7 +956,7 @@ source ~/.zshrc
 
 # Project-scoped (.env file — never commit this!)
 echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .env
-# drift-cli reads .env automatically
+# drift-sync reads .env automatically
 ```
 
 ---
@@ -1057,8 +1057,8 @@ drift snapshot --component "extras.jsx::AccountPage"
 
 ## 20. FAQ
 
-**Q: Does drift-cli modify my code files directly?**  
-A: No. drift-cli only generates Markdown prompt files. All actual code changes are performed by Claude Code or Claude Design when you paste the prompt. drift-cli is a "prompt factory" — it never touches your source code.
+**Q: Does drift-sync modify my code files directly?**  
+A: No. drift-sync only generates Markdown prompt files. All actual code changes are performed by Claude Code or Claude Design when you paste the prompt. drift-sync is a "prompt factory" — it never touches your source code.
 
 **Q: Where should I run `drift init`?**  
 A: From any directory. The `.drift/` folder is created in your **current working directory** (CWD). A common choice is a parent directory that sits above both your design and code directories, e.g.:
@@ -1070,11 +1070,11 @@ A: From any directory. The `.drift/` folder is created in your **current working
   .drift/               ← created here
 ```
 
-**Q: Can I use drift-cli with a Vue or Svelte project?**  
+**Q: Can I use drift-sync with a Vue or Svelte project?**  
 A: Yes. The core sync engine is framework-agnostic. Stack detection supports Vue + Nuxt and Svelte + SvelteKit. The generated prompts include framework-specific conversion hints based on what was detected.
 
 **Q: What if my design exports HTML files alongside JSX?**  
-A: drift-cli scans HTML files for `<script type="text/babel">` blocks and extracts JSX components from them. Include `**/*.html` in `design.include` to enable this.
+A: drift-sync scans HTML files for `<script type="text/babel">` blocks and extracts JSX components from them. Include `**/*.html` in `design.include` to enable this.
 
 **Q: The AI analysis keeps timing out. What should I do?**  
 A: Reduce the batch size:
@@ -1096,13 +1096,13 @@ drift sync --to code --no-ai
 **Q: Can multiple developers share a `.drift/` directory?**  
 A: It's designed to be used by one developer per design↔code pair. For team use, commit `.drift/drift.config.json` and `.drift/registry.json` to source control (they're stable state), but add `.drift/queue.json` and `.drift/snapshots/` to `.gitignore` (they're ephemeral state).
 
-**Q: How do I update drift-cli?**  
-A: `npm update -g drift-cli` or `pnpm update -g drift-cli`.
+**Q: How do I update drift-sync?**  
+A: `npm update -g drift-sync` or `pnpm update -g drift-sync`.
 
 **Q: What happens when Claude Design exports and overwrites all files?**  
-A: drift-cli detects file-level hash changes first (fast path), then re-extracts only the components that actually changed. Even if Claude Design rewrites 20 JSX files, only the components with genuine content changes will appear in `drift diff` output. This avoids false positives from Claude Design's full-directory export.
+A: drift-sync detects file-level hash changes first (fast path), then re-extracts only the components that actually changed. Even if Claude Design rewrites 20 JSX files, only the components with genuine content changes will appear in `drift diff` output. This avoids false positives from Claude Design's full-directory export.
 
-**Q: Can I run drift-cli in CI?**  
+**Q: Can I run drift-sync in CI?**  
 A: Yes, for drift detection (not sync):
 
 ```bash

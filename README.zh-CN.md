@@ -1,10 +1,10 @@
 [English](./README.md) | **简体中文**
 
-# drift-cli
+# drift-sync
 
 > 在 Claude Design 与 Claude Code 之间建立双向同步通道的命令行工具
 
-[![npm version](https://img.shields.io/npm/v/drift-cli)](https://www.npmjs.com/package/drift-cli)
+[![npm version](https://img.shields.io/npm/v/drift-sync)](https://www.npmjs.com/package/drift-sync)
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,12 +14,12 @@
 
 使用 **Claude Design** 做高保真原型、**Claude Code** 实现生产代码时，两侧是同一产品意图的不同代码形态，但存放在独立目录中。任意一侧迭代后，另一侧无法感知——随时间累积形成**双向漂移（drift）**。
 
-`drift-cli` 追踪两侧的组件级差异，生成上下文完整的同步 Prompt，让你直接粘贴给 Claude Code 或 Claude Design 完成翻译，**不直接修改任何文件**。
+`drift-sync` 追踪两侧的组件级差异，生成上下文完整的同步 Prompt，让你直接粘贴给 Claude Code 或 Claude Design 完成翻译，**不直接修改任何文件**。
 
 ```
 Claude Design (JSX 原型)           Claude Code (生产代码)
          │                                  │
-         └──────────── drift-cli ───────────┘
+         └──────────── drift-sync ───────────┘
               追踪变更 · 生成 Prompt · 更新基线
 ```
 
@@ -40,13 +40,13 @@ Claude Design (JSX 原型)           Claude Code (生产代码)
 
 ```bash
 # npm
-npm install -g drift-cli
+npm install -g drift-sync
 
 # pnpm
-pnpm add -g drift-cli
+pnpm add -g drift-sync
 
 # 或在项目中本地安装
-npm install --save-dev drift-cli
+npm install --save-dev drift-sync
 ```
 
 **依赖环境：** Node.js >= 18
@@ -145,7 +145,7 @@ drift snapshot --after-sync
 
 ### `drift init`
 
-初始化 drift-cli。
+初始化 drift-sync。
 
 ```
 Options:
@@ -349,8 +349,8 @@ drift diff
 ## 开发
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-cli
-cd drift-cli
+git clone https://github.com/JiangDing1990/drift-sync
+cd drift-sync
 pnpm install
 
 pnpm run build      # 构建

@@ -1,13 +1,13 @@
 [← Back to README](../README.md)
 
-# drift-cli — Architecture & Technical Design
+# drift-sync — Architecture & Technical Design
 
-> Internal design document describing the architecture, data model, and module breakdown of drift-cli.
+> Internal design document describing the architecture, data model, and module breakdown of drift-sync.
 > For user-facing documentation, see the [README](../README.md).
 
 ---
 
-# drift-cli 技术方案
+# drift-sync 技术方案
 
 > 设计稿与生产代码双向同步的 CLI 桥接工具
 
@@ -46,7 +46,7 @@
 
 ### 目标
 
-构建一个 CLI 工具 `drift-cli`，作为两侧之间的智能桥接层，实现：
+构建一个 CLI 工具 `drift-sync`，作为两侧之间的智能桥接层，实现：
 
 - 自动检测两侧文件的变更
 - 区分**结构变更**（文件增删改名）和**语义变更**（代码意图变化）
@@ -124,7 +124,7 @@
 ### 项目仓库结构
 
 ```
-drift-cli/
+drift-sync/
 ├── package.json
 ├── tsconfig.json
 ├── README.md
@@ -184,7 +184,7 @@ your-project/
 │   └── pages/
 │       └── Home.tsx
 │
-└── .sync/                        # drift-cli 状态目录（建议加入 .gitignore）
+└── .sync/                        # drift-sync 状态目录（建议加入 .gitignore）
     ├── config.json               # 配置：路径、映射规则、排除规则
     ├── snapshot.json             # 最近一次快照（两侧文件 hash）
     ├── queue.json                # 待处理的同步队列
@@ -611,7 +611,7 @@ interface AIAnalysisResult {
 生成的 prompt 需要包含完整上下文，让 Claude Code / Claude Design 能够直接基于它工作，不需要额外补充信息。
 
 ```markdown
-# drift-cli 同步任务
+# drift-sync 同步任务
 
 ## 任务说明
 
@@ -923,7 +923,7 @@ DRIFT_DEBUG=true                # 可选，输出详细日志
 - 完整测试覆盖（Scanner / Differ / Analyzer）
 - `--watch` 模式：文件系统监听，自动触发 diff
 - VSCode 扩展（可选）：在编辑器侧边栏查看同步状态
-- npm 发布：`npm install -g drift-cli`
+- npm 发布：`npm install -g drift-sync`
 
 ---
 
@@ -933,7 +933,7 @@ DRIFT_DEBUG=true                # 可选，输出详细日志
 
 ```bash
 # 安装
-npm install -g drift-cli
+npm install -g drift-sync
 
 # 在项目根目录初始化
 cd your-project

@@ -1,5 +1,5 @@
 {
-  "name": "drift-cli",
+  "name": "drift-sync",
   "version": "0.4.0",
   "description": "CLI tool for bidirectional sync between Claude Design and Claude Code projects",
   "type": "module",
@@ -25,11 +25,11 @@
   "packageManager": "pnpm@11.5.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JiangDing1990/drift-cli.git"
+    "url": "https://github.com/JiangDing1990/drift-sync.git"
   },
-  "homepage": "https://github.com/JiangDing1990/drift-cli#readme",
+  "homepage": "https://github.com/JiangDing1990/drift-sync#readme",
   "bugs": {
-    "url": "https://github.com/JiangDing1990/drift-cli/issues"
+    "url": "https://github.com/JiangDing1990/drift-sync/issues"
   },
   "keywords": [
     "cli",

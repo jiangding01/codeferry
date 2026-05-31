@@ -1,8 +1,8 @@
-# drift-cli — Project Guide for Claude
+# drift-sync — Project Guide for Claude
 
 ## Project Overview
 
-drift-cli is a **bidirectional sync CLI** between Claude Design (JSX prototypes) and Claude Code (production code). It never modifies source files directly — it generates context-rich Markdown prompts that the user pastes into Claude Code or Claude Design.
+drift-sync is a **bidirectional sync CLI** between Claude Design (JSX prototypes) and Claude Code (production code). It never modifies source files directly — it generates context-rich Markdown prompts that the user pastes into Claude Code or Claude Design.
 
 **Key constraint:** The tool is framework-agnostic. Core logic (scanner, extractor, differ, mapper) must never hardcode framework-specific knowledge. Framework hints go in `drift.config.json → project.designToCodeHints` only.
 

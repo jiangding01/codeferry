@@ -159,7 +159,7 @@ export function buildSyncPrompt(ctx: PromptContext): string {
   const sections: string[] = [];
 
   // ── Header ──
-  sections.push(`# drift-cli 同步任务 · ${dirLabel}`);
+  sections.push(`# drift-sync 同步任务 · ${dirLabel}`);
   sections.push('');
 
   // ── Overview ──

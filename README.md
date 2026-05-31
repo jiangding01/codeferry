@@ -1,10 +1,10 @@
 **English** | [简体中文](./README.zh-CN.md)
 
-# drift-cli
+# drift-sync
 
 > A CLI tool for bidirectional sync between Claude Design and Claude Code
 
-[![npm version](https://img.shields.io/npm/v/drift-cli)](https://www.npmjs.com/package/drift-cli)
+[![npm version](https://img.shields.io/npm/v/drift-sync)](https://www.npmjs.com/package/drift-sync)
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,12 +14,12 @@
 
 When building products with **Claude Design** (high-fidelity JSX prototypes) and **Claude Code** (production implementation), both sides represent the same product intent in different code forms — but live in separate directories. Whenever one side evolves, the other side has no way to know. Over time, this creates **bidirectional drift**.
 
-`drift-cli` tracks component-level differences between both sides, generates context-rich sync prompts, and lets you paste them directly into Claude Code or Claude Design to perform the translation. **It never modifies your files directly.**
+`drift-sync` tracks component-level differences between both sides, generates context-rich sync prompts, and lets you paste them directly into Claude Code or Claude Design to perform the translation. **It never modifies your files directly.**
 
 ```
 Claude Design (JSX prototypes)        Claude Code (production code)
          │                                       │
-         └──────────────── drift-cli ────────────┘
+         └──────────────── drift-sync ────────────┘
                  track · generate prompts · update baseline
 ```
 
@@ -40,13 +40,13 @@ Claude Design (JSX prototypes)        Claude Code (production code)
 
 ```bash
 # npm
-npm install -g drift-cli
+npm install -g drift-sync
 
 # pnpm
-pnpm add -g drift-cli
+pnpm add -g drift-sync
 
 # or install locally in a project
-npm install --save-dev drift-cli
+npm install --save-dev drift-sync
 ```
 
 **Requires:** Node.js >= 18
@@ -145,7 +145,7 @@ drift snapshot --after-sync
 
 ### `drift init`
 
-Initialize drift-cli.
+Initialize drift-sync.
 
 ```
 Options:
@@ -349,8 +349,8 @@ Detection results are stored in `drift.config.json`. All dimensions can be corre
 ## Development
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-cli
-cd drift-cli
+git clone https://github.com/JiangDing1990/drift-sync
+cd drift-sync
 pnpm install
 
 pnpm run build      # build

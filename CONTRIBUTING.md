@@ -1,12 +1,12 @@
-# Contributing to drift-cli
+# Contributing to drift-sync
 
 Thank you for your interest in contributing! This document covers how to get started.
 
 ## Development Setup
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-cli.git
-cd drift-cli
+git clone https://github.com/JiangDing1990/drift-sync.git
+cd drift-sync
 pnpm install
 pnpm run build
 ```
@@ -66,9 +66,9 @@ test: add edge case coverage for extractor
 
 ## Reporting Bugs
 
-Please open an issue at [github.com/JiangDing1990/drift-cli/issues](https://github.com/JiangDing1990/drift-cli/issues) with:
+Please open an issue at [github.com/JiangDing1990/drift-sync/issues](https://github.com/JiangDing1990/drift-sync/issues) with:
 
-- drift-cli version (`drift --version`)
+- drift-sync version (`drift --version`)
 - Node.js version (`node --version`)
 - Steps to reproduce
 - Expected vs actual behaviour

@@ -35,7 +35,7 @@ function truncateContent(content: string, label: string): { text: string; trunca
 
 // ── Prompt construction ──────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a code synchronization analyzer for drift-cli, a tool that tracks changes between design prototypes (JSX) and production code.
+const SYSTEM_PROMPT = `You are a code synchronization analyzer for drift-sync, a tool that tracks changes between design prototypes (JSX) and production code.
 
 Given a component's current design and code state, analyze the change and provide sync guidance.
 

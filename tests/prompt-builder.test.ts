@@ -72,7 +72,7 @@ describe('buildSyncPrompt', () => {
   it('contains component name in header', () => {
     const prompt = buildSyncPrompt(makeCtx());
     expect(prompt).toContain('AccountPage');
-    expect(prompt).toContain('drift-cli 同步任务');
+    expect(prompt).toContain('drift-sync 同步任务');
   });
 
   it('design-to-code: places designContent under "设计稿当前内容"', () => {

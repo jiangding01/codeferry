@@ -1,6 +1,6 @@
 # Roadmap
 
-This document outlines the planned development path for drift-cli. Priorities may shift based on user feedback.
+This document outlines the planned development path for drift-sync. Priorities may shift based on user feedback.
 
 For completed work, see [CHANGELOG.md](./CHANGELOG.md).
 For architecture details, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
@@ -76,7 +76,7 @@ Phase 1–4 are fully implemented and tested (68 unit tests, 0 TypeScript errors
 - [ ] End-to-end integration tests using fixture design + code directories
 - [ ] Plugin API for custom mapping strategies
 - [ ] Full documentation site (VitePress or Docusaurus)
-- [ ] `drift migrate` — migrate `.drift/` state between drift-cli major versions
+- [ ] `drift migrate` — migrate `.drift/` state between drift-sync major versions
 
 ---
 

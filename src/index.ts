@@ -19,7 +19,7 @@ program
 
 program
   .command('init')
-  .description('初始化 drift-cli，创建 .drift/ 目录和初始快照')
+  .description('初始化 drift-sync，创建 .drift/ 目录和初始快照')
   .requiredOption('--design <path>', '设计稿根目录路径')
   .requiredOption('--code <path>', '代码项目根目录路径')
   .option('--force', '强制重新初始化', false)
