@@ -277,7 +277,7 @@ export async function diffCommand(opts: DiffOptions = {}): Promise<void> {
         // v0.3+ stores only the baseline hash, not baseline content — real diff not possible yet.
         // Show a neutral notice instead of a misleading "hash string → full component" diff.
         if (entry.designHashAtSync) {
-          console.log(chalk.dim('  [基线 hash 已存在，但无历史内容可对比 — 上次同步后的首次变更]'));
+          log.dim('  [基线 hash 已存在，但无历史内容可对比 — 上次同步后的首次变更]');
         }
       }
     }

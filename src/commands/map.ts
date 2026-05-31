@@ -244,9 +244,15 @@ export async function mapSetCommand(componentId: string, codePath: string, opts:
   try {
     const content = await readFile(join(codeRoot, codePath), 'utf8');
     codeHash = hashMultiple([content]);
-  } catch {
-    log.error(`无法读取代码文件：${codePath}`);
-    log.dim(`  请确认路径相对于 code.root（${config.code.root}）正确后重试`);
+  } catch (err) {
+    const isNotFound = (err as NodeJS.ErrnoException).code === 'ENOENT';
+    if (isNotFound) {
+      log.error(`代码文件不存在：${codePath}`);
+      log.dim(`  请确认路径相对于 code.root（${config.code.root}）正确后重试`);
+    } else {
+      log.error(`无法读取代码文件：${codePath}（${(err as NodeJS.ErrnoException).code ?? '未知错误'}）`);
+      log.dim('  如为权限问题，请检查文件读取权限');
+    }
     process.exit(1);
   }
 
