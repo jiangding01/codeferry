@@ -154,7 +154,10 @@ export async function buildHtmlBridgeIndex(designRoot: string): Promise<HtmlBrid
       return srcs;
     };
 
-    const moduleScriptRe = /<script[^>]*\btype=["']module["'][^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
+    // Use a lookahead so type="module" and src="..." can appear in any order.
+    // Without the lookahead, /<script[^>]*type...[^>]*src...>/ only matches when
+    // type comes before src — <script src="..." type="module"> would silently skip.
+    const moduleScriptRe = /<script(?=[^>]*\btype=["']module["'])[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
     const anyScriptRe = /<script[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
 
     let entrySrcs = collectSrcs(moduleScriptRe);

@@ -73,12 +73,21 @@ function nameSlug(name: string): string {
  * truncated to MAX_CODE_FILES_IN_PROMPT.
  */
 function rankFilesByRelevance(files: string[], components: ComponentEntry[]): string[] {
-  const slugs = components.map((c) => nameSlug(c.name));
+  // Only use slugs long enough to be meaningfully distinctive.
+  // Short slugs like "app", "ui", "src" (≤ 3 chars) would match almost every file
+  // in a typical project, making the ranking useless.
+  const slugs = components.map((c) => nameSlug(c.name)).filter((s) => s.length >= 4);
+
+  if (slugs.length === 0) return files; // all slugs too short — return unchanged
+
   return [...files].sort((a, b) => {
     const aLower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
     const bLower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const aMatch = slugs.some((s) => aLower.includes(s) || s.includes(aLower));
-    const bMatch = slugs.some((s) => bLower.includes(s) || s.includes(bLower));
+    // Check if the compact file path contains a component slug (one-direction only:
+    // file path includes the slug — the reverse would check if a short slug wraps
+    // a long path string, which is never true and adds no signal).
+    const aMatch = slugs.some((s) => aLower.includes(s));
+    const bMatch = slugs.some((s) => bLower.includes(s));
     if (aMatch && !bMatch) return -1;
     if (!aMatch && bMatch) return 1;
     return 0;
