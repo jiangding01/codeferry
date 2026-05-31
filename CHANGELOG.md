@@ -6,6 +6,15 @@
 
 ---
 
+## [0.4.0] — 2026-05-31
+
+### 变更
+- npm 包名从 `drift-cli` 更名为 `drift-sync`（CLI 命令 `drift` 不变）
+- GitHub 仓库迁移至 `JiangDing1990/drift-sync`
+- **首次发布到 npm**：`npm install -g drift-sync`
+
+---
+
 ## [0.4.0] — 2026-05-30
 
 ### 新增
