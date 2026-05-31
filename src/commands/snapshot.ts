@@ -105,8 +105,12 @@ async function updateBaselines(
     const codeUnchanged = freshCodeHash === entry.codeHashAtSync;
 
     if (hadPendingChange && designUnchanged && codeUnchanged) {
-      // Had changes but neither side moved — user may have snapshot'd too early
-      log.warn(`${chalk.bold(entry.name)}: 两侧 hash 未变化 — 确认同步已应用后再运行 snapshot`);
+      // Both sides match their last baseline — no update needed.
+      // This can happen legitimately (e.g. user reverted changes) so avoid alarming language.
+      log.info(
+        `${chalk.bold(entry.name)}: 两侧 hash 与基线一致，无需更新。` +
+        `如已应用同步，请确认文件已保存后重试`,
+      );
       warned++;
       continue;
     }

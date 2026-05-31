@@ -246,7 +246,10 @@ program
 const wsCmd = program
   .command('workspace')
   .alias('ws')
-  .description('管理多工作区（每个工作区对应一对 design+code 目录）');
+  .description(
+    '管理多工作区（每个工作区对应一对 design+code 目录）\n' +
+    '提示：也可通过 CODEFERRY_WORKSPACE 环境变量指定活跃工作区，等效于 -w 参数',
+  );
 
 wsCmd
   .command('list', { isDefault: true })

@@ -11,6 +11,12 @@ export async function hashFile(filePath: string): Promise<string> {
 }
 
 export function hashMultiple(contents: string[]): string {
-  const combined = contents.join('\n---drift-separator---\n');
-  return hashContent(combined);
+  // Use a streaming hasher with null-byte separators to eliminate any collision
+  // risk from text-based separators that could appear in file content.
+  const hasher = createHash('sha256');
+  for (const c of contents) {
+    hasher.update(c, 'utf8');
+    hasher.update('\0'); // null byte cannot appear in text source files
+  }
+  return hasher.digest('hex');
 }

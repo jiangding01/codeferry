@@ -53,5 +53,5 @@ export function printInitComplete(componentCount: number, snapshotId: string): v
   log.dim(`  组件注册：${componentCount} 个`);
   log.dim(`  初始快照：${snapshotId}`);
   log.blank();
-  log.info(`运行 ${chalk.bold('drift status')} 查看同步状态`);
+  // Next-steps are printed by init.ts to ensure correct ordering
 }

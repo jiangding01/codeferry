@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import chalk from 'chalk';
-import { createTwoFilesPatch } from 'diff';
 import { resolveStore } from '../state/resolve-store.js';
 import { computeAllStatuses, refreshHashes } from '../core/differ.js';
 import { analyzeComponents } from '../core/analyzer.js';
@@ -89,28 +88,6 @@ function printAiAnalysis(analysis: AIAnalysisResult): void {
 
   if (analysis.analysisNote) {
     log.dim(`    注：${analysis.analysisNote}`);
-  }
-  console.log();
-}
-
-function colorDiffLine(line: string): string {
-  if (line.startsWith('+++') || line.startsWith('---')) return chalk.gray(line);
-  if (line.startsWith('+')) return chalk.green(line);
-  if (line.startsWith('-')) return chalk.red(line);
-  if (line.startsWith('@@')) return chalk.cyan(line);
-  return chalk.gray(line);
-}
-
-function printDiff(diffStr: string): void {
-  const lines = diffStr.split('\n');
-  // Skip the 4-line patch header (Index, ===, ---, +++)
-  const body = lines.slice(4);
-  const hasDiffLines = body.some((l) => l.startsWith('+') || l.startsWith('-'));
-  if (!hasDiffLines) return;
-
-  for (const line of body) {
-    if (line === '') continue;
-    console.log(`    ${colorDiffLine(line)}`);
   }
   console.log();
 }
@@ -297,17 +274,10 @@ export async function diffCommand(opts: DiffOptions = {}): Promise<void> {
         if (lines.length > 20) log.dim(`    ... 还有 ${lines.length - 20} 行`);
         console.log();
 
-        // Show diff vs baseline hash (cosmetic — no stored baseline content in v0.3)
+        // v0.3+ stores only the baseline hash, not baseline content — real diff not possible yet.
+        // Show a neutral notice instead of a misleading "hash string → full component" diff.
         if (entry.designHashAtSync) {
-          const diffStr = createTwoFilesPatch(
-            `${entry.designFile} [baseline]`,
-            `${entry.designFile} [${entry.name}]`,
-            `(baseline hash: ${entry.designHashAtSync.slice(0, 12)})`,
-            designContent,
-            'baseline',
-            'current',
-          );
-          printDiff(diffStr);
+          console.log(chalk.dim('  [基线 hash 已存在，但无历史内容可对比 — 上次同步后的首次变更]'));
         }
       }
     }
@@ -327,7 +297,7 @@ export async function diffCommand(opts: DiffOptions = {}): Promise<void> {
     if (status === 'never-synced') {
       console.log(
         `  ${chalk.gray('○')} 有映射关系但从未同步 — ` +
-        `运行 ${chalk.bold('drift snapshot')} 建立基线，然后 ${chalk.bold('drift sync')} 生成同步 Prompt`,
+        `运行 ${chalk.bold('codeferry snapshot')} 建立基线，然后 ${chalk.bold('codeferry sync')} 生成同步 Prompt`,
       );
       console.log();
     }
@@ -374,23 +344,23 @@ export async function diffCommand(opts: DiffOptions = {}): Promise<void> {
   // Step 10: Next-steps hints
   if (summary.conflicts > 0) {
     log.warn(
-      `发现 ${summary.conflicts} 个冲突组件 — 两侧均有修改，运行 ${chalk.bold('drift sync --to code')} 生成合并 Prompt`,
+      `发现 ${summary.conflicts} 个冲突组件 — 两侧均有修改，运行 ${chalk.bold('codeferry sync --to code')} 生成合并 Prompt`,
     );
   }
   if (summary.designAhead > 0) {
     log.info(
-      `${summary.designAhead} 个组件设计侧领先 — 运行 ${chalk.bold('drift sync --to code')} 同步到代码`,
+      `${summary.designAhead} 个组件设计侧领先 — 运行 ${chalk.bold('codeferry sync --to code')} 同步到代码`,
     );
   }
   if (summary.codeAhead > 0) {
     log.info(
-      `${summary.codeAhead} 个组件代码侧领先 — 运行 ${chalk.bold('drift sync --to design')} 同步到设计稿`,
+      `${summary.codeAhead} 个组件代码侧领先 — 运行 ${chalk.bold('codeferry sync --to design')} 同步到设计稿`,
     );
   }
   if (summary.neverSynced > 0) {
     log.info(
       `${summary.neverSynced} 个组件有映射但从未同步 — ` +
-      `运行 ${chalk.bold('drift snapshot')} 建立基线`,
+      `运行 ${chalk.bold('codeferry snapshot')} 建立基线`,
     );
   }
   console.log();

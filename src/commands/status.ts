@@ -128,8 +128,6 @@ export async function statusCommand(opts: StatusOptions = {}): Promise<void> {
       s.fail('扫描失败');
       log.warn(String(err));
     }
-  } else if (!opts.refresh) {
-    log.dim('  提示：使用 --refresh 参数重新扫描文件系统以获取最新状态');
   }
 
   const diffResult = computeAllStatuses(currentRegistry);
@@ -185,8 +183,8 @@ export async function statusCommand(opts: StatusOptions = {}): Promise<void> {
     if (newDesign.length > 10) log.dim(`    ... 还有 ${newDesign.length - 10} 个`);
     console.log();
     log.info(
-      `运行 ${chalk.bold('drift map auto')} 自动建立映射，` +
-      `或 ${chalk.bold('drift map set <id> <path>')} 手动指定`,
+      `运行 ${chalk.bold('codeferry map auto')} 自动建立映射，` +
+      `或 ${chalk.bold('codeferry map set <id> <path>')} 手动指定`,
     );
   }
 

@@ -332,7 +332,9 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
   await store.saveSnapshot(snapshot);
 
-  // Done
+  // Done — print next-steps in correct order (map → status)
   printInitComplete(Object.keys(registry.components).length, snapshotId);
-  log.info(`下一步：运行 ${chalk.bold('codeferry map auto')} 自动建立组件映射关系`);
+  log.info('下一步：');
+  log.info(`  1. 运行 ${chalk.bold('codeferry map auto')} 自动建立组件映射关系`);
+  log.info(`  2. 运行 ${chalk.bold('codeferry status')} 查看同步状态`);
 }

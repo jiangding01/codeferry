@@ -238,13 +238,16 @@ export async function mapSetCommand(componentId: string, codePath: string, opts:
 
   const codeRoot = resolvePath(config.code.root);
 
-  // Compute code hash
+  // Compute code hash — fail hard if the target file doesn't exist.
+  // Allowing an empty hash would cause differ.ts to permanently ignore code-side changes.
   let codeHash = '';
   try {
     const content = await readFile(join(codeRoot, codePath), 'utf8');
     codeHash = hashMultiple([content]);
   } catch {
-    log.warn(`无法读取代码文件：${codePath}，继续但 hash 为空`);
+    log.error(`无法读取代码文件：${codePath}`);
+    log.dim(`  请确认路径相对于 code.root（${config.code.root}）正确后重试`);
+    process.exit(1);
   }
 
   const wasUnmapped = entry.codeFiles.length === 0;

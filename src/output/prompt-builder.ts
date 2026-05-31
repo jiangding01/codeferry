@@ -40,24 +40,12 @@ const IMPACT_LABEL: Record<'high' | 'medium' | 'low', string> = {
   low: '低（细节调整）',
 };
 
-function buildStackContext(config: DriftConfig, stackInfo?: StackInfo | null): string {
+function buildStackContext(config: DriftConfig, _stackInfo?: StackInfo | null): string {
   const parts: string[] = [];
 
-  // StackDetector results take priority when fields are populated
-  const hasDetectedFields = !!(
-    stackInfo?.framework || stackInfo?.language ||
-    stackInfo?.styling || stackInfo?.routing
-  );
-
-  if (hasDetectedFields && stackInfo) {
-    const detected: string[] = [];
-    if (stackInfo.framework) detected.push(`框架: ${stackInfo.framework.value}`);
-    if (stackInfo.language) detected.push(`语言: ${stackInfo.language.value}`);
-    if (stackInfo.styling) detected.push(`样式: ${stackInfo.styling.value}`);
-    if (stackInfo.routing) detected.push(`路由: ${stackInfo.routing.value}`);
-    if (detected.length > 0) parts.push(detected.join(' · '));
-  } else if (config.project?.stack) {
-    // Fall back to the plain stack string stored in config
+  // tryLoadStackInfo() only populates designToCodeHints / codeToDesignHints —
+  // not framework/language/styling/routing — so we always read from config.project.stack.
+  if (config.project?.stack) {
     parts.push(`技术栈: ${config.project.stack}`);
   }
 

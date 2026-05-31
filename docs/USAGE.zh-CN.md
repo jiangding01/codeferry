@@ -957,6 +957,7 @@ codeferry snapshot
 | 变量 | 是否必需 | 说明 |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | 可选 | 启用 `codeferry diff` 和 `codeferry sync` 的 AI 语义分析 |
+| `CODEFERRY_WORKSPACE` | 可选 | 指定活跃工作区，等效于每条命令加 `-w <名称>` 参数 |
 
 ```bash
 # 临时设置（仅当前会话）
@@ -970,6 +971,22 @@ source ~/.zshrc
 echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .env
 # codeferry 会自动读取 .env 文件
 ```
+
+### `CODEFERRY_WORKSPACE` — 多工作区 CI 场景
+
+在 CI 环境中，使用环境变量比每次传 `-w` 参数更方便：
+
+```bash
+# 在 CI pipeline 中为不同工作区分别运行检查
+CODEFERRY_WORKSPACE=web codeferry diff --no-ai
+CODEFERRY_WORKSPACE=mobile codeferry diff --no-ai
+
+# 等效的 CLI 参数写法
+codeferry diff --no-ai -w web
+codeferry diff --no-ai -w mobile
+```
+
+优先级（从高到低）：`-w` 参数 > `CODEFERRY_WORKSPACE` > `.codeferry/state.json` > `default`
 
 ---
 

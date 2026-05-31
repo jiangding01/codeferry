@@ -48,8 +48,10 @@ export class StateStore {
       return JSON.parse(raw) as T;
     } catch {
       throw new Error(
-        `${filePath} 内容无效（JSON 解析失败）。` +
-        `如文件已损坏，请删除 .codeferry/ 目录后重新运行 drift init。`,
+        `${filePath} 内容无效（JSON 解析失败）。\n` +
+        `请删除损坏的文件后重新运行对应命令：\n` +
+        `  rm "${filePath}"\n` +
+        `（其他状态文件不受影响）`,
       );
     }
   }

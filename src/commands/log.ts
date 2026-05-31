@@ -214,10 +214,10 @@ export async function logCommand(opts: LogOptions = {}): Promise<void> {
   const inProgressCount = counts['in-progress'];
 
   if (inProgressCount > 0) {
-    log.info(`${inProgressCount} 个组件同步中 — 应用 Prompt 后运行 ${chalk.bold('drift snapshot --after-sync')}`);
+    log.info(`${inProgressCount} 个组件同步中 — 应用 Prompt 后运行 ${chalk.bold('codeferry snapshot --after-sync')}`);
   }
   if (pendingCount > 0) {
-    log.info(`${pendingCount} 个组件等待处理 — 运行 ${chalk.bold('drift sync --to code')} 生成 Prompt`);
+    log.info(`${pendingCount} 个组件等待处理 — 运行 ${chalk.bold('codeferry sync --to code')} 生成 Prompt`);
   }
   if (printed > 0) console.log();
 }

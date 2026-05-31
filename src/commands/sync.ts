@@ -387,7 +387,7 @@ export async function syncCommand(opts: SyncOptions): Promise<void> {
 
   console.log(
     `  ${chalk.bold('4.')} 确认修改正确后，运行 ` +
-    `${chalk.bold('drift snapshot --after-sync')} ` +
+    `${chalk.bold('codeferry snapshot --after-sync')} ` +
     `更新同步基线（自动标记本次同步的 ${candidates.length} 个组件为 done）`,
   );
   console.log();
