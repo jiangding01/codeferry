@@ -349,7 +349,7 @@ drift diff
 ## 开发
 
 ```bash
-git clone https://github.com/your-org/drift-cli
+git clone https://github.com/JiangDing1990/drift-cli
 cd drift-cli
 pnpm install
 
