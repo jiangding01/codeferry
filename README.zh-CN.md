@@ -1,10 +1,10 @@
 [English](./README.md) | **简体中文**
 
-# drift-sync
+# codeferry
 
 > 在 Claude Design 与 Claude Code 之间建立双向同步通道的命令行工具
 
-[![npm version](https://img.shields.io/npm/v/drift-sync)](https://www.npmjs.com/package/drift-sync)
+[![npm version](https://img.shields.io/npm/v/codeferry)](https://www.npmjs.com/package/codeferry)
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,12 +14,12 @@
 
 使用 **Claude Design** 做高保真原型、**Claude Code** 实现生产代码时，两侧是同一产品意图的不同代码形态，但存放在独立目录中。任意一侧迭代后，另一侧无法感知——随时间累积形成**双向漂移（drift）**。
 
-`drift-sync` 追踪两侧的组件级差异，生成上下文完整的同步 Prompt，让你直接粘贴给 Claude Code 或 Claude Design 完成翻译，**不直接修改任何文件**。
+`codeferry` 追踪两侧的组件级差异，生成上下文完整的同步 Prompt，让你直接粘贴给 Claude Code 或 Claude Design 完成翻译，**不直接修改任何文件**。
 
 ```
 Claude Design (JSX 原型)           Claude Code (生产代码)
          │                                  │
-         └──────────── drift-sync ───────────┘
+         └──────────── codeferry ───────────┘
               追踪变更 · 生成 Prompt · 更新基线
 ```
 
@@ -32,7 +32,7 @@ Claude Design (JSX 原型)           Claude Code (生产代码)
 - 🤖 **AI 语义分析** — 调用 Claude API 分析变更意图（功能新增 / 样式调整 / 交互变化…）
 - 📋 **双向 Prompt 生成** — 生成自包含的 Markdown prompt，含完整上下文，直接发给 Claude
 - 🛠 **技术栈无关** — 核心同步逻辑不依赖任何框架；Next.js、Vue、Svelte 均适用
-- 🔎 **技术栈自动检测** — `drift init` 时自动识别框架、语言、样式方案，写入 prompt 转换指引
+- 🔎 **技术栈自动检测** — `codeferry init` 时自动识别框架、语言、样式方案，写入 prompt 转换指引
 
 ---
 
@@ -40,13 +40,13 @@ Claude Design (JSX 原型)           Claude Code (生产代码)
 
 ```bash
 # npm
-npm install -g drift-sync
+npm install -g codeferry
 
 # pnpm
-pnpm add -g drift-sync
+pnpm add -g codeferry
 
 # 或在项目中本地安装
-npm install --save-dev drift-sync
+npm install --save-dev codeferry
 ```
 
 **依赖环境：** Node.js >= 18
@@ -60,7 +60,7 @@ npm install --save-dev drift-sync
 ### 1. 初始化
 
 ```bash
-drift init --design ~/Downloads/my-design --code ~/my-project
+codeferry init --design ~/Downloads/my-design --code ~/my-project
 ```
 
 - 创建 `.drift/` 目录（放在你运行命令的工作目录，独立于两个项目）
@@ -70,26 +70,26 @@ drift init --design ~/Downloads/my-design --code ~/my-project
 ### 2. 建立组件映射
 
 ```bash
-drift map auto               # 自动映射（文件名 + 导出名匹配）
-drift map                    # 查看所有映射关系
-drift map set <id> <path>    # 手动指定映射
+codeferry map auto               # 自动映射（文件名 + 导出名匹配）
+codeferry map                    # 查看所有映射关系
+codeferry map set <id> <path>    # 手动指定映射
 ```
 
 ### 3. 检测变更
 
 ```bash
-drift diff                   # 扫描双目录，含 AI 语义分析
-drift diff --no-ai           # 仅展示结构 diff，跳过 AI
-drift diff --side design     # 只检测设计侧变更
+codeferry diff                   # 扫描双目录，含 AI 语义分析
+codeferry diff --no-ai           # 仅展示结构 diff，跳过 AI
+codeferry diff --side design     # 只检测设计侧变更
 ```
 
 ### 4. 生成同步 Prompt
 
 ```bash
-drift sync --to code         # 将设计稿变更同步到代码（复制到剪贴板）
-drift sync --to design       # 将代码变更同步到设计稿
-drift sync --to code --out ./prompts/    # 写入文件
-drift sync --to code --component TopNav # 仅指定组件
+codeferry sync --to code         # 将设计稿变更同步到代码（复制到剪贴板）
+codeferry sync --to design       # 将代码变更同步到设计稿
+codeferry sync --to code --out ./prompts/    # 写入文件
+codeferry sync --to code --component TopNav # 仅指定组件
 ```
 
 ### 5. 粘贴 Prompt，让 Claude 执行
@@ -99,8 +99,8 @@ drift sync --to code --component TopNav # 仅指定组件
 ### 6. 更新基线，闭合循环
 
 ```bash
-drift snapshot --after-sync  # 只更新本次同步的组件
-drift snapshot               # 更新所有组件基线
+codeferry snapshot --after-sync  # 只更新本次同步的组件
+codeferry snapshot               # 更新所有组件基线
 ```
 
 ---
@@ -111,41 +111,41 @@ drift snapshot               # 更新所有组件基线
 
 ```
 1. 在 Claude Design 更新设计稿，重新导出到本地目录
-2. drift diff                        ← 检测变更，AI 分析意图
-3. drift sync --to code --copy       ← 生成 Prompt，复制到剪贴板
+2. codeferry diff                        ← 检测变更，AI 分析意图
+3. codeferry sync --to code --copy       ← 生成 Prompt，复制到剪贴板
 4. 粘贴给 Claude Code 对话框
 5. Claude Code 修改本地代码文件
 6. 确认结果正确
-7. drift snapshot --after-sync       ← 更新基线，状态变为 synced
+7. codeferry snapshot --after-sync       ← 更新基线，状态变为 synced
 ```
 
 ### Code → Design（反向场景）
 
 ```
 1. 修改代码文件
-2. drift diff --side code            ← 检测代码侧变更
-3. drift sync --to design --copy     ← 生成含反向转换指引的 Prompt
+2. codeferry diff --side code            ← 检测代码侧变更
+3. codeferry sync --to design --copy     ← 生成含反向转换指引的 Prompt
 4. 粘贴给 Claude Design 对话框
 5. Claude Design 更新并重新导出设计稿
-6. drift snapshot --after-sync       ← 更新基线
+6. codeferry snapshot --after-sync       ← 更新基线
 ```
 
 ### 冲突解决（两侧同时修改）
 
 ```
-drift diff                           ← 显示 "⚠ CONFLICT"
-drift sync --to code --component TopNav   ← 生成合并 Prompt（含两侧 diff）
+codeferry diff                           ← 显示 "⚠ CONFLICT"
+codeferry sync --to code --component TopNav   ← 生成合并 Prompt（含两侧 diff）
 # 让 Claude Code 手动合并两个变更
-drift snapshot --after-sync
+codeferry snapshot --after-sync
 ```
 
 ---
 
 ## 命令参考
 
-### `drift init`
+### `codeferry init`
 
-初始化 drift-sync。
+初始化 codeferry。
 
 ```
 Options:
@@ -155,19 +155,19 @@ Options:
   --skip-detect     跳过技术栈自动检测
 ```
 
-### `drift map`
+### `codeferry map`
 
 管理组件映射关系。
 
 ```
-drift map                          # 查看所有映射（等同于 drift map list）
-drift map list [--unmapped]        # 仅显示未映射的组件
-drift map auto                     # 运行自动映射策略
-drift map set <id> <path>          # 手动设置映射
-drift map unset <id>               # 移除映射
+codeferry map                          # 查看所有映射（等同于 codeferry map list）
+codeferry map list [--unmapped]        # 仅显示未映射的组件
+codeferry map auto                     # 运行自动映射策略
+codeferry map set <id> <path>          # 手动设置映射
+codeferry map unset <id>               # 移除映射
 ```
 
-### `drift status`
+### `codeferry status`
 
 查看所有组件的同步状态总览。
 
@@ -178,7 +178,7 @@ Options:
                       both-changed | never-synced | new-design | new-code
 ```
 
-### `drift diff`
+### `codeferry diff`
 
 检测双目录变更，展示 diff 并进行 AI 语义分析。分析结果写入同步队列。
 
@@ -191,7 +191,7 @@ Options:
 
 > **AI 分析** 需要设置环境变量 `ANTHROPIC_API_KEY`。未设置时自动降级为纯结构 diff。
 
-### `drift sync`
+### `codeferry sync`
 
 读取同步队列，生成包含完整上下文的双向同步 Prompt。
 
@@ -204,17 +204,17 @@ Options:
   --no-ai              跳过 AI 语义分析，使用通用转换指引
 ```
 
-### `drift snapshot`
+### `codeferry snapshot`
 
 将当前双侧文件状态标记为新基线。**同步循环必须以此命令结束。**
 
 ```
 Options:
   --component <name>  仅更新指定组件的基线
-  --after-sync        仅更新 in-progress 状态的组件（推荐与 drift sync 配合使用）
+  --after-sync        仅更新 in-progress 状态的组件（推荐与 codeferry sync 配合使用）
 ```
 
-### `drift log`
+### `codeferry log`
 
 查看同步操作历史与队列状态。
 
@@ -229,7 +229,7 @@ Options:
 
 ## 配置文件
 
-`drift init` 在 `.drift/` 目录下生成 `drift.config.json`，可以手动编辑：
+`codeferry init` 在 `.drift/` 目录下生成 `drift.config.json`，可以手动编辑：
 
 ```jsonc
 {
@@ -259,7 +259,7 @@ Options:
       "组件使用 CSS Modules，文件名 *.module.scss",
       "路由使用 App Router，页面放在 src/app/ 下"
     ],
-    // 由 drift init 自动生成，也可手动编辑
+    // 由 codeferry init 自动生成，也可手动编辑
     "designToCodeHints": [
       "将内联样式转换为 Tailwind 类名",
       "添加 TypeScript 类型注解",
@@ -282,22 +282,22 @@ Options:
 | 状态 | 含义 | 建议操作 |
 |---|---|---|
 | `synced` | 两侧均与基线一致 | 无需操作 |
-| `design-ahead` | 设计稿更新，代码未同步 | `drift sync --to code` |
-| `code-ahead` | 代码更新，设计稿未同步 | `drift sync --to design` |
-| `both-changed` | 两侧均有变更（冲突） | `drift sync --to code`（生成合并 Prompt） |
-| `never-synced` | 有映射但从未同步 | `drift snapshot` 建立初始基线 |
-| `new-design` | 设计稿新增组件，无代码映射 | `drift map set` 建立映射 |
-| `new-code` | 代码新增文件，无设计稿映射 | `drift map set` 建立映射（可选） |
+| `design-ahead` | 设计稿更新，代码未同步 | `codeferry sync --to code` |
+| `code-ahead` | 代码更新，设计稿未同步 | `codeferry sync --to design` |
+| `both-changed` | 两侧均有变更（冲突） | `codeferry sync --to code`（生成合并 Prompt） |
+| `never-synced` | 有映射但从未同步 | `codeferry snapshot` 建立初始基线 |
+| `new-design` | 设计稿新增组件，无代码映射 | `codeferry map set` 建立映射 |
+| `new-code` | 代码新增文件，无设计稿映射 | `codeferry map set` 建立映射（可选） |
 
 ---
 
 ## AI 分析
 
-`drift diff` 和 `drift sync` 可调用 Claude API 对变更进行语义分析：
+`codeferry diff` 和 `codeferry sync` 可调用 Claude API 对变更进行语义分析：
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
-drift diff
+codeferry diff
 ```
 
 分析结果包含：
@@ -331,7 +331,7 @@ drift diff
 
 ## 技术栈检测
 
-`drift init` 自动检测代码侧技术栈，支持：
+`codeferry init` 自动检测代码侧技术栈，支持：
 
 | 维度 | 支持 |
 |---|---|
@@ -349,8 +349,8 @@ drift diff
 ## 开发
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-sync
-cd drift-sync
+git clone https://github.com/JiangDing1990/codeferry
+cd codeferry
 pnpm install
 
 pnpm run build      # 构建

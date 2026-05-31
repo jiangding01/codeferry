@@ -1,12 +1,12 @@
-# Contributing to drift-sync
+# Contributing to codeferry
 
 Thank you for your interest in contributing! This document covers how to get started.
 
 ## Development Setup
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-sync.git
-cd drift-sync
+git clone https://github.com/JiangDing1990/codeferry.git
+cd codeferry
 pnpm install
 pnpm run build
 ```
@@ -66,9 +66,9 @@ test: add edge case coverage for extractor
 
 ## Reporting Bugs
 
-Please open an issue at [github.com/JiangDing1990/drift-sync/issues](https://github.com/JiangDing1990/drift-sync/issues) with:
+Please open an issue at [github.com/JiangDing1990/codeferry/issues](https://github.com/JiangDing1990/codeferry/issues) with:
 
-- drift-sync version (`drift --version`)
+- codeferry version (`codeferry --version`)
 - Node.js version (`node --version`)
 - Steps to reproduce
 - Expected vs actual behaviour

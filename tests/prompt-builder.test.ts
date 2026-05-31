@@ -72,7 +72,7 @@ describe('buildSyncPrompt', () => {
   it('contains component name in header', () => {
     const prompt = buildSyncPrompt(makeCtx());
     expect(prompt).toContain('AccountPage');
-    expect(prompt).toContain('drift-sync 同步任务');
+    expect(prompt).toContain('codeferry 同步任务');
   });
 
   it('design-to-code: places designContent under "设计稿当前内容"', () => {
@@ -216,7 +216,7 @@ describe('buildSyncPrompt', () => {
     const prompt = buildSyncPrompt(makeCtx());
     expect(prompt).toContain('注意事项');
     expect(prompt).toContain('只同步意图');
-    expect(prompt).toContain('drift snapshot');
+    expect(prompt).toContain('codeferry snapshot');
   });
 });
 

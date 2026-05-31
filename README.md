@@ -1,10 +1,10 @@
 **English** | [简体中文](./README.zh-CN.md)
 
-# drift-sync
+# codeferry
 
 > A CLI tool for bidirectional sync between Claude Design and Claude Code
 
-[![npm version](https://img.shields.io/npm/v/drift-sync)](https://www.npmjs.com/package/drift-sync)
+[![npm version](https://img.shields.io/npm/v/codeferry)](https://www.npmjs.com/package/codeferry)
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,12 +14,12 @@
 
 When building products with **Claude Design** (high-fidelity JSX prototypes) and **Claude Code** (production implementation), both sides represent the same product intent in different code forms — but live in separate directories. Whenever one side evolves, the other side has no way to know. Over time, this creates **bidirectional drift**.
 
-`drift-sync` tracks component-level differences between both sides, generates context-rich sync prompts, and lets you paste them directly into Claude Code or Claude Design to perform the translation. **It never modifies your files directly.**
+`codeferry` tracks component-level differences between both sides, generates context-rich sync prompts, and lets you paste them directly into Claude Code or Claude Design to perform the translation. **It never modifies your files directly.**
 
 ```
 Claude Design (JSX prototypes)        Claude Code (production code)
          │                                       │
-         └──────────────── drift-sync ────────────┘
+         └──────────────── codeferry ────────────┘
                  track · generate prompts · update baseline
 ```
 
@@ -32,7 +32,7 @@ Claude Design (JSX prototypes)        Claude Code (production code)
 - 🤖 **AI semantic analysis** — Calls Claude API to classify change intent (feature-add / style-change / interaction-change…)
 - 📋 **Bidirectional prompt generation** — Generates self-contained Markdown prompts with full context, ready to paste into Claude
 - 🛠 **Framework-agnostic** — Core sync logic is independent of any framework; works with Next.js, Vue, Svelte, and more
-- 🔎 **Auto stack detection** — `drift init` detects framework, language, and styling at setup time, injecting framework-specific conversion hints into prompts
+- 🔎 **Auto stack detection** — `codeferry init` detects framework, language, and styling at setup time, injecting framework-specific conversion hints into prompts
 
 ---
 
@@ -40,13 +40,13 @@ Claude Design (JSX prototypes)        Claude Code (production code)
 
 ```bash
 # npm
-npm install -g drift-sync
+npm install -g codeferry
 
 # pnpm
-pnpm add -g drift-sync
+pnpm add -g codeferry
 
 # or install locally in a project
-npm install --save-dev drift-sync
+npm install --save-dev codeferry
 ```
 
 **Requires:** Node.js >= 18
@@ -60,7 +60,7 @@ npm install --save-dev drift-sync
 ### 1. Initialize
 
 ```bash
-drift init --design ~/Downloads/my-design --code ~/my-project
+codeferry init --design ~/Downloads/my-design --code ~/my-project
 ```
 
 - Creates a `.drift/` directory in your current working directory (independent of both projects)
@@ -70,26 +70,26 @@ drift init --design ~/Downloads/my-design --code ~/my-project
 ### 2. Map components to code files
 
 ```bash
-drift map auto               # Auto-map by filename + export name matching
-drift map                    # View all mappings
-drift map set <id> <path>    # Manually set a mapping
+codeferry map auto               # Auto-map by filename + export name matching
+codeferry map                    # View all mappings
+codeferry map set <id> <path>    # Manually set a mapping
 ```
 
 ### 3. Detect changes
 
 ```bash
-drift diff                   # Scan both sides with AI semantic analysis
-drift diff --no-ai           # Structural diff only, skip AI
-drift diff --side design     # Only scan the design side
+codeferry diff                   # Scan both sides with AI semantic analysis
+codeferry diff --no-ai           # Structural diff only, skip AI
+codeferry diff --side design     # Only scan the design side
 ```
 
 ### 4. Generate a sync prompt
 
 ```bash
-drift sync --to code         # Sync design changes to code (copy to clipboard)
-drift sync --to design       # Sync code changes to design
-drift sync --to code --out ./prompts/    # Write to files instead
-drift sync --to code --component TopNav # Single component only
+codeferry sync --to code         # Sync design changes to code (copy to clipboard)
+codeferry sync --to design       # Sync code changes to design
+codeferry sync --to code --out ./prompts/    # Write to files instead
+codeferry sync --to code --component TopNav # Single component only
 ```
 
 ### 5. Paste the prompt and let Claude do the work
@@ -99,8 +99,8 @@ Paste the clipboard content into a Claude Code or Claude Design conversation and
 ### 6. Update the baseline to close the loop
 
 ```bash
-drift snapshot --after-sync  # Only update components synced in this run
-drift snapshot               # Update all component baselines
+codeferry snapshot --after-sync  # Only update components synced in this run
+codeferry snapshot               # Update all component baselines
 ```
 
 ---
@@ -111,41 +111,41 @@ drift snapshot               # Update all component baselines
 
 ```
 1. Update the design in Claude Design and re-export to your local directory
-2. drift diff                        ← detect changes, AI classifies intent
-3. drift sync --to code --copy       ← generate prompt, copy to clipboard
+2. codeferry diff                        ← detect changes, AI classifies intent
+3. codeferry sync --to code --copy       ← generate prompt, copy to clipboard
 4. Paste into a Claude Code conversation
 5. Claude Code edits local code files
 6. Review and confirm the result looks correct
-7. drift snapshot --after-sync       ← lock baseline, status → synced
+7. codeferry snapshot --after-sync       ← lock baseline, status → synced
 ```
 
 ### Code → Design (reverse)
 
 ```
 1. Edit code files
-2. drift diff --side code            ← detect code-side changes
-3. drift sync --to design --copy     ← generate reverse-direction prompt
+2. codeferry diff --side code            ← detect code-side changes
+3. codeferry sync --to design --copy     ← generate reverse-direction prompt
 4. Paste into a Claude Design conversation
 5. Claude Design updates and re-exports the design
-6. drift snapshot --after-sync       ← lock baseline
+6. codeferry snapshot --after-sync       ← lock baseline
 ```
 
 ### Conflict resolution (both sides changed)
 
 ```
-drift diff                                   ← shows "⚠ CONFLICT"
-drift sync --to code --component TopNav      ← generates merge prompt with both diffs
+codeferry diff                                   ← shows "⚠ CONFLICT"
+codeferry sync --to code --component TopNav      ← generates merge prompt with both diffs
 # Let Claude Code merge both sets of changes
-drift snapshot --after-sync
+codeferry snapshot --after-sync
 ```
 
 ---
 
 ## Command Reference
 
-### `drift init`
+### `codeferry init`
 
-Initialize drift-sync.
+Initialize codeferry.
 
 ```
 Options:
@@ -155,19 +155,19 @@ Options:
   --skip-detect     Skip tech stack auto-detection
 ```
 
-### `drift map`
+### `codeferry map`
 
 Manage component-to-code mappings.
 
 ```
-drift map                          # View all mappings (alias for drift map list)
-drift map list [--unmapped]        # Show only unmapped components
-drift map auto                     # Run auto-mapping strategies
-drift map set <id> <path>          # Manually set a mapping
-drift map unset <id>               # Remove a mapping
+codeferry map                          # View all mappings (alias for codeferry map list)
+codeferry map list [--unmapped]        # Show only unmapped components
+codeferry map auto                     # Run auto-mapping strategies
+codeferry map set <id> <path>          # Manually set a mapping
+codeferry map unset <id>               # Remove a mapping
 ```
 
-### `drift status`
+### `codeferry status`
 
 View a summary of all component sync states.
 
@@ -178,7 +178,7 @@ Options:
                       both-changed | never-synced | new-design | new-code
 ```
 
-### `drift diff`
+### `codeferry diff`
 
 Scan both directories for changes, display diffs, and run AI semantic analysis. Results are written to the sync queue.
 
@@ -191,7 +191,7 @@ Options:
 
 > **AI analysis** requires the `ANTHROPIC_API_KEY` environment variable. Without it, the tool gracefully falls back to structural diff only.
 
-### `drift sync`
+### `codeferry sync`
 
 Read the sync queue and generate bidirectional sync prompts with full context.
 
@@ -204,17 +204,17 @@ Options:
   --no-ai              Skip AI analysis, use generic conversion hints
 ```
 
-### `drift snapshot`
+### `codeferry snapshot`
 
 Mark the current state of both sides as the new baseline. **Every sync loop must end with this command.**
 
 ```
 Options:
   --component <name>  Only update the baseline for a specific component
-  --after-sync        Only update in-progress components (recommended after drift sync)
+  --after-sync        Only update in-progress components (recommended after codeferry sync)
 ```
 
-### `drift log`
+### `codeferry log`
 
 View sync history and queue state.
 
@@ -229,7 +229,7 @@ Options:
 
 ## Configuration
 
-`drift init` generates `drift.config.json` inside the `.drift/` directory. You can edit it manually:
+`codeferry init` generates `drift.config.json` inside the `.drift/` directory. You can edit it manually:
 
 ```jsonc
 {
@@ -259,7 +259,7 @@ Options:
       "Components use CSS Modules with *.module.scss file names",
       "Routing uses App Router; pages live under src/app/"
     ],
-    // Auto-generated by drift init; can also be edited manually
+    // Auto-generated by codeferry init; can also be edited manually
     "designToCodeHints": [
       "Convert inline styles to Tailwind class names",
       "Add TypeScript type annotations",
@@ -282,22 +282,22 @@ Options:
 | State | Meaning | Recommended action |
 |---|---|---|
 | `synced` | Both sides match the baseline | Nothing to do |
-| `design-ahead` | Design updated, code not yet synced | `drift sync --to code` |
-| `code-ahead` | Code updated, design not yet synced | `drift sync --to design` |
-| `both-changed` | Both sides changed (conflict) | `drift sync --to code` (generates merge prompt) |
-| `never-synced` | Mapped but never synced | `drift snapshot` to establish initial baseline |
-| `new-design` | New design component, no code mapping | `drift map set` to create mapping |
-| `new-code` | New code file, no design mapping | `drift map set` (optional) |
+| `design-ahead` | Design updated, code not yet synced | `codeferry sync --to code` |
+| `code-ahead` | Code updated, design not yet synced | `codeferry sync --to design` |
+| `both-changed` | Both sides changed (conflict) | `codeferry sync --to code` (generates merge prompt) |
+| `never-synced` | Mapped but never synced | `codeferry snapshot` to establish initial baseline |
+| `new-design` | New design component, no code mapping | `codeferry map set` to create mapping |
+| `new-code` | New code file, no design mapping | `codeferry map set` (optional) |
 
 ---
 
 ## AI Analysis
 
-`drift diff` and `drift sync` can call the Claude API to analyze changes semantically:
+`codeferry diff` and `codeferry sync` can call the Claude API to analyze changes semantically:
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
-drift diff
+codeferry diff
 ```
 
 Analysis output includes:
@@ -331,7 +331,7 @@ The `.drift/` directory is independent of both projects — it won't pollute you
 
 ## Stack Detection
 
-`drift init` auto-detects the code-side tech stack. Supported dimensions:
+`codeferry init` auto-detects the code-side tech stack. Supported dimensions:
 
 | Dimension | Supported |
 |---|---|
@@ -342,15 +342,15 @@ The `.drift/` directory is independent of both projects — it won't pollute you
 | Routing | App Router · Pages Router · React Router · Vue Router |
 | Component pattern | function declaration · arrow function |
 
-Detection results are stored in `drift.config.json`. All dimensions can be corrected during the interactive confirmation step in `drift init`.
+Detection results are stored in `drift.config.json`. All dimensions can be corrected during the interactive confirmation step in `codeferry init`.
 
 ---
 
 ## Development
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-sync
-cd drift-sync
+git clone https://github.com/JiangDing1990/codeferry
+cd codeferry
 pnpm install
 
 pnpm run build      # build

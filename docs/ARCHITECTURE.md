@@ -1,13 +1,13 @@
 [← Back to README](../README.md)
 
-# drift-sync — Architecture & Technical Design
+# codeferry — Architecture & Technical Design
 
-> Internal design document describing the architecture, data model, and module breakdown of drift-sync.
+> Internal design document describing the architecture, data model, and module breakdown of codeferry.
 > For user-facing documentation, see the [README](../README.md).
 
 ---
 
-# drift-sync 技术方案
+# codeferry 技术方案
 
 > 设计稿与生产代码双向同步的 CLI 桥接工具
 
@@ -46,7 +46,7 @@
 
 ### 目标
 
-构建一个 CLI 工具 `drift-sync`，作为两侧之间的智能桥接层，实现：
+构建一个 CLI 工具 `codeferry`，作为两侧之间的智能桥接层，实现：
 
 - 自动检测两侧文件的变更
 - 区分**结构变更**（文件增删改名）和**语义变更**（代码意图变化）
@@ -124,7 +124,7 @@
 ### 项目仓库结构
 
 ```
-drift-sync/
+codeferry/
 ├── package.json
 ├── tsconfig.json
 ├── README.md
@@ -184,7 +184,7 @@ your-project/
 │   └── pages/
 │       └── Home.tsx
 │
-└── .sync/                        # drift-sync 状态目录（建议加入 .gitignore）
+└── .sync/                        # codeferry 状态目录（建议加入 .gitignore）
     ├── config.json               # 配置：路径、映射规则、排除规则
     ├── snapshot.json             # 最近一次快照（两侧文件 hash）
     ├── queue.json                # 待处理的同步队列
@@ -301,13 +301,13 @@ interface DriftConfig {
 
 ## 6. 命令设计
 
-### `drift init`
+### `codeferry init`
 
 初始化项目，记录两侧当前状态作为基准快照。
 
 ```bash
-drift init --design ./design --code ./src
-drift init  # 如果已有 config.json，直接从配置读取
+codeferry init --design ./design --code ./src
+codeferry init  # 如果已有 config.json，直接从配置读取
 ```
 
 执行流程：
@@ -327,15 +327,15 @@ drift init  # 如果已有 config.json，直接从配置读取
 
 ---
 
-### `drift diff`
+### `codeferry diff`
 
 核心命令。检测自上次快照以来的所有变更，调用 AI 分析语义，生成同步建议并写入队列。
 
 ```bash
-drift diff                    # 分析两侧所有变更
-drift diff --side design      # 只分析设计侧的变更
-drift diff --side code        # 只分析实现侧的变更
-drift diff --no-ai            # 只做结构 diff，跳过 AI 分析
+codeferry diff                    # 分析两侧所有变更
+codeferry diff --side design      # 只分析设计侧的变更
+codeferry diff --side code        # 只分析实现侧的变更
+codeferry diff --no-ai            # 只做结构 diff，跳过 AI 分析
 ```
 
 执行流程：
@@ -369,21 +369,21 @@ AI 语义分析
   ✔ LoadingSpinner → [新增组件] design 侧新增，code 侧尚未实现
   ✔ Home.tsx       → [逻辑变化] 新增分页逻辑，design 侧未反映
 
-已写入 4 条同步建议到队列  运行 drift status 查看详情
+已写入 4 条同步建议到队列  运行 codeferry status 查看详情
 ```
 
 ---
 
-### `drift sync`
+### `codeferry sync`
 
 从队列中取出待处理项，生成结构化的同步 prompt，可直接发送给 Claude Code 或 Claude Design。
 
 ```bash
-drift sync --to code           # 生成"将 design 变更同步到 code"的 prompt
-drift sync --to design         # 生成"将 code 变更同步到 design"的 prompt
-drift sync --id <changeId>     # 只处理指定的变更项
-drift sync --to code --copy    # 生成后自动复制到剪贴板
-drift sync --to code --out ./prompt.md  # 输出到文件
+codeferry sync --to code           # 生成"将 design 变更同步到 code"的 prompt
+codeferry sync --to design         # 生成"将 code 变更同步到 design"的 prompt
+codeferry sync --id <changeId>     # 只处理指定的变更项
+codeferry sync --to code --copy    # 生成后自动复制到剪贴板
+codeferry sync --to code --out ./prompt.md  # 输出到文件
 ```
 
 执行流程：
@@ -398,15 +398,15 @@ drift sync --to code --out ./prompt.md  # 输出到文件
 
 ---
 
-### `drift status`
+### `codeferry status`
 
 查看当前同步队列状态，支持标记完成或跳过。
 
 ```bash
-drift status                   # 展示所有待处理项
-drift status --all             # 包含已完成和已跳过的历史
-drift status done <id>         # 标记某项为完成
-drift status skip <id>         # 标记某项为跳过，附加原因
+codeferry status                   # 展示所有待处理项
+codeferry status --all             # 包含已完成和已跳过的历史
+codeferry status done <id>         # 标记某项为完成
+codeferry status skip <id>         # 标记某项为跳过，附加原因
 ```
 
 输出示例：
@@ -423,14 +423,14 @@ drift status skip <id>         # 标记某项为跳过，附加原因
 
 ---
 
-### `drift log`
+### `codeferry log`
 
 查看历史 diff 报告。
 
 ```bash
-drift log                      # 列出所有历史报告
-drift log --last               # 查看最近一次报告
-drift log 2026-05-30           # 查看指定日期的报告
+codeferry log                      # 列出所有历史报告
+codeferry log --last               # 查看最近一次报告
+codeferry log 2026-05-30           # 查看指定日期的报告
 ```
 
 ---
@@ -611,7 +611,7 @@ interface AIAnalysisResult {
 生成的 prompt 需要包含完整上下文，让 Claude Code / Claude Design 能够直接基于它工作，不需要额外补充信息。
 
 ```markdown
-# drift-sync 同步任务
+# codeferry 同步任务
 
 ## 任务说明
 
@@ -825,7 +825,7 @@ DRIFT_DEBUG=true                # 可选，输出详细日志
 
 | 错误类型 | 处理方式 |
 |----------|----------|
-| 配置文件不存在 | 提示运行 `drift init`，退出 |
+| 配置文件不存在 | 提示运行 `codeferry init`，退出 |
 | 文件读取权限错误 | 跳过该文件，在报告中标注，继续处理其他文件 |
 | Claude API rate limit | 指数退避重试，最多 3 次，超过则跳过该批次并提示 |
 | Claude API 响应解析失败 | 降级：跳过 AI 分析，只输出结构 diff，提示用户手动判断 |
@@ -923,7 +923,7 @@ DRIFT_DEBUG=true                # 可选，输出详细日志
 - 完整测试覆盖（Scanner / Differ / Analyzer）
 - `--watch` 模式：文件系统监听，自动触发 diff
 - VSCode 扩展（可选）：在编辑器侧边栏查看同步状态
-- npm 发布：`npm install -g drift-sync`
+- npm 发布：`npm install -g codeferry`
 
 ---
 
@@ -933,17 +933,17 @@ DRIFT_DEBUG=true                # 可选，输出详细日志
 
 ```bash
 # 安装
-npm install -g drift-sync
+npm install -g codeferry
 
 # 在项目根目录初始化
 cd your-project
-drift init --design ./design --code ./src
+codeferry init --design ./design --code ./src
 
 # 输出：
 # ✔ 配置已写入 .sync/config.json
 # ✔ 扫描完成：design 24 文件，code 31 文件
 # ✔ 初始快照已保存到 .sync/snapshot.json
-# 运行 drift diff 开始检测变更
+# 运行 codeferry diff 开始检测变更
 ```
 
 ### 日常迭代工作流
@@ -952,18 +952,18 @@ drift init --design ./design --code ./src
 # 场景：在 Claude Design 更新了 Button 和 Modal 组件
 
 # 1. 检测变更
-drift diff
+codeferry diff
 
 # 2. 查看同步队列
-drift status
+codeferry status
 
 # 3. 生成同步 prompt，复制到剪贴板
-drift sync --to code --copy
+codeferry sync --to code --copy
 
 # 4. 粘贴给 Claude Code，完成同步开发
 
 # 5. 标记为已完成
-drift status done chg_20260530_001
+codeferry status done chg_20260530_001
 ```
 
 ### 反向同步场景
@@ -971,8 +971,8 @@ drift status done chg_20260530_001
 ```bash
 # 场景：在 Claude Code 中先优化了某功能，需要同步回 Claude Design
 
-drift diff --side code
-drift sync --to design --copy
+codeferry diff --side code
+codeferry sync --to design --copy
 
 # 粘贴给 Claude Design，更新设计稿
 ```

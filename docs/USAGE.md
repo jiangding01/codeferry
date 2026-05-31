@@ -1,6 +1,6 @@
 [English](./USAGE.md) | [简体中文](./USAGE.zh-CN.md)
 
-# drift-sync — Complete Usage Guide
+# codeferry — Complete Usage Guide
 
 > This guide walks through every feature and scenario with annotated terminal output.  
 > For a quick overview, see the [README](../README.md).
@@ -11,9 +11,9 @@
 
 1. [Prerequisites](#1-prerequisites)
 2. [Installation](#2-installation)
-3. [Project Setup — `drift init`](#3-project-setup--drift-init)
-4. [Component Mapping — `drift map`](#4-component-mapping--drift-map)
-5. [Baseline Snapshot — `drift snapshot`](#5-baseline-snapshot--drift-snapshot)
+3. [Project Setup — `codeferry init`](#3-project-setup--drift-init)
+4. [Component Mapping — `codeferry map`](#4-component-mapping--drift-map)
+5. [Baseline Snapshot — `codeferry snapshot`](#5-baseline-snapshot--drift-snapshot)
 6. [Scenario A — Design → Code (most common)](#6-scenario-a--design--code-most-common)
 7. [Scenario B — Code → Design (reverse sync)](#7-scenario-b--code--design-reverse-sync)
 8. [Scenario C — Conflict Resolution (both sides changed)](#8-scenario-c--conflict-resolution-both-sides-changed)
@@ -22,8 +22,8 @@
 11. [Scenario F — Working Without AI](#11-scenario-f--working-without-ai)
 12. [Scenario G — Syncing a New Design Component](#12-scenario-g--syncing-a-new-design-component)
 13. [Scenario H — Code-only additions (new-code)](#13-scenario-h--code-only-additions-new-code)
-14. [Checking Sync Status — `drift status`](#14-checking-sync-status--drift-status)
-15. [Viewing History — `drift log`](#15-viewing-history--drift-log)
+14. [Checking Sync Status — `codeferry status`](#14-checking-sync-status--drift-status)
+15. [Viewing History — `codeferry log`](#15-viewing-history--drift-log)
 16. [Configuration File Reference](#16-configuration-file-reference)
 17. [Re-initialization and Reset](#17-re-initialization-and-reset)
 18. [Environment Variables](#18-environment-variables)
@@ -58,7 +58,7 @@
       shared/index.tsx
 ```
 
-> **Claude Design exports** a flat JSX file with zero imports, using browser-compiled Babel. One file often contains multiple page-level components. drift-sync understands this format natively.
+> **Claude Design exports** a flat JSX file with zero imports, using browser-compiled Babel. One file often contains multiple page-level components. codeferry understands this format natively.
 
 ---
 
@@ -68,44 +68,44 @@
 
 ```bash
 # npm
-npm install -g drift-sync
+npm install -g codeferry
 
 # pnpm
-pnpm add -g drift-sync
+pnpm add -g codeferry
 
 # Verify
-drift --version
+codeferry --version
 # 0.4.0
 ```
 
 ### Local (per project)
 
 ```bash
-npm install --save-dev drift-sync
+npm install --save-dev codeferry
 # Then use: npx drift <command>
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/JiangDing1990/drift-sync.git
-cd drift-sync
+git clone https://github.com/JiangDing1990/codeferry.git
+cd codeferry
 pnpm install
 pnpm run build
-npm link     # makes `drift` available globally
+npm link     # makes `codeferry` available globally
 ```
 
 ---
 
-## 3. Project Setup — `drift init`
+## 3. Project Setup — `codeferry init`
 
-`drift init` is a one-time setup that creates the `.drift/` state directory, detects your tech stack, extracts design components, scans code files, and takes an initial snapshot.
+`codeferry init` is a one-time setup that creates the `.drift/` state directory, detects your tech stack, extracts design components, scans code files, and takes an initial snapshot.
 
 ### Basic usage
 
 ```bash
 # Run from any directory — .drift/ is created in your CWD
-drift init \
+codeferry init \
   --design ~/Downloads/my-design/components \
   --code   ~/my-project
 ```
@@ -113,7 +113,7 @@ drift init \
 ### Full interactive session
 
 ```
-$ drift init --design ~/Downloads/picture-hub/components --code ~/danqing
+$ codeferry init --design ~/Downloads/picture-hub/components --code ~/danqing
 
 - Creating .drift/ directory...
 ✔ .drift/ directory created
@@ -155,7 +155,7 @@ $ drift init --design ~/Downloads/picture-hub/components --code ~/danqing
 **Choose "Skip"** when running in a non-interactive environment (or use `--skip-detect`):
 
 ```bash
-drift init --design ~/Downloads/my-design --code ~/my-project --skip-detect
+codeferry init --design ~/Downloads/my-design --code ~/my-project --skip-detect
 ```
 
 ### After confirmation
@@ -182,7 +182,7 @@ drift init --design ~/Downloads/my-design --code ~/my-project --skip-detect
   Registered: 139 components
   Initial snapshot: snap_2026-05-31T04-12-15
 
-ℹ Next: run drift map auto to establish component mappings
+ℹ Next: run codeferry map auto to establish component mappings
 ```
 
 ### What gets created
@@ -207,14 +207,14 @@ drift init --design ~/Downloads/my-design --code ~/my-project --skip-detect
 
 ---
 
-## 4. Component Mapping — `drift map`
+## 4. Component Mapping — `codeferry map`
 
-Mapping connects design components to their code counterparts. Without a mapping, drift-sync cannot generate sync prompts.
+Mapping connects design components to their code counterparts. Without a mapping, codeferry cannot generate sync prompts.
 
 ### Step 1 — Run auto-mapping
 
 ```bash
-drift map auto
+codeferry map auto
 ```
 
 Output:
@@ -237,14 +237,14 @@ Output:
 
 ✔ Registry updated
 ✔ Mapping complete: 49 components mapped
-  90 components unmatched — use drift map set to assign manually
+  90 components unmatched — use codeferry map set to assign manually
 ```
 
 ### Step 2 — Review the mapping table
 
 ```bash
-drift map          # full table
-drift map --unmapped   # only unmatched components
+codeferry map          # full table
+codeferry map --unmapped   # only unmatched components
 ```
 
 Full table excerpt:
@@ -266,10 +266,10 @@ Full table excerpt:
 Auto-mapping sometimes hits wrong files (e.g., `GalleryPage` mapping to the API router instead of the page component). Fix them manually:
 
 ```bash
-# Syntax: drift map set "<file>::<ComponentName>" "<relative-code-path>"
-drift map set "other-pages.jsx::GalleryPage" "src/app/(dashboard)/gallery/page.tsx"
-drift map set "extras.jsx::WorkDetailPage"   "src/app/(dashboard)/gallery/[id]/page.tsx"
-drift map set "admin.jsx::AdminPage"         "src/app/(admin)/admin/page.tsx"
+# Syntax: codeferry map set "<file>::<ComponentName>" "<relative-code-path>"
+codeferry map set "other-pages.jsx::GalleryPage" "src/app/(dashboard)/gallery/page.tsx"
+codeferry map set "extras.jsx::WorkDetailPage"   "src/app/(dashboard)/gallery/[id]/page.tsx"
+codeferry map set "admin.jsx::AdminPage"         "src/app/(admin)/admin/page.tsx"
 ```
 
 Output:
@@ -283,17 +283,17 @@ Output:
 ### Step 4 — Map remaining unmapped components
 
 ```bash
-drift map --unmapped
+codeferry map --unmapped
 ```
 
 For components that genuinely don't have a code counterpart yet, you can skip them or map them to the closest file:
 
 ```bash
 # Skip a component (it won't appear in sync suggestions)
-drift map unset "extras3.jsx::UnmappedWidget"
+codeferry map unset "extras3.jsx::UnmappedWidget"
 
 # Map a component that shares a file with another
-drift map set "admin.jsx::AdminSidebar" "src/app/(admin)/admin/content.tsx"
+codeferry map set "admin.jsx::AdminSidebar" "src/app/(admin)/admin/content.tsx"
 ```
 
 ### Component ID format
@@ -309,16 +309,16 @@ Examples:
 - `shared.jsx::TopNav`
 - `other-pages.jsx::GalleryPage`
 
-Use `drift map` to look up IDs at any time.
+Use `codeferry map` to look up IDs at any time.
 
 ---
 
-## 5. Baseline Snapshot — `drift snapshot`
+## 5. Baseline Snapshot — `codeferry snapshot`
 
-After setting up mappings, you must take a baseline snapshot. This records the current hash of both sides, so future `drift diff` runs know what "unchanged" looks like.
+After setting up mappings, you must take a baseline snapshot. This records the current hash of both sides, so future `codeferry diff` runs know what "unchanged" looks like.
 
 ```bash
-drift snapshot
+codeferry snapshot
 ```
 
 Output:
@@ -328,16 +328,16 @@ Output:
 ✔ Baseline update complete: 49 components
   90 unmapped components skipped
 ✔ Snapshot saved: snap_2026-05-31T04-12-15
-  State locked as synced baseline; next drift diff compares from here
+  State locked as synced baseline; next codeferry diff compares from here
 ```
 
-Now `drift status` shows:
+Now `codeferry status` shows:
 
 ```
 ✔ synced 49  ·  ◐ design-ahead 0  ·  ◑ code-ahead 0  ·  ⚠ conflict 0
 ```
 
-> **Important:** If you skip this step, all components stay in `never-synced` state and `drift diff` will report no changes on either side.
+> **Important:** If you skip this step, all components stay in `never-synced` state and `codeferry diff` will report no changes on either side.
 
 ---
 
@@ -356,7 +356,7 @@ For this example, suppose `AccountPage` in `extras.jsx` now has a new "API Token
 **Step 2 — Detect changes**
 
 ```bash
-drift diff
+codeferry diff
 ```
 
 With `ANTHROPIC_API_KEY` set:
@@ -365,7 +365,7 @@ With `ANTHROPIC_API_KEY` set:
 - Scanning both directories for changes...
 ✔ Scan complete: 1 design change, 0 code changes · 1 component affected
 
-  drift diff — design ↔ code
+  codeferry diff — design ↔ code
 
   ✔ synced 48  ◐ design-ahead 1  ◑ code-ahead 0  ⚠ conflict 0
 
@@ -384,7 +384,7 @@ With `ANTHROPIC_API_KEY` set:
     2. Add a "token" case to handleAction() — for now show a "coming soon" modal like 2FA
     3. Optionally add an ApiTokenModal component similar to DeviceModal
 
-ℹ 1 component design-ahead — run drift sync --to code to sync to code
+ℹ 1 component design-ahead — run codeferry sync --to code to sync to code
 ```
 
 Without `ANTHROPIC_API_KEY` (structural diff only):
@@ -407,10 +407,10 @@ Without `ANTHROPIC_API_KEY` (structural diff only):
 
 ```bash
 # Copy to clipboard (default)
-drift sync --to code
+codeferry sync --to code
 
 # Or write to a file
-drift sync --to code --out ./prompts/
+codeferry sync --to code --out ./prompts/
 ```
 
 Output:
@@ -419,7 +419,7 @@ Output:
 - Scanning for changes (Design → Code)...
 ✔ Scan complete
 
-  drift sync — Design → Code
+  codeferry sync — Design → Code
 
   1 component to sync:
     ◐ AccountPage  extras.jsx
@@ -434,7 +434,7 @@ Output:
   1. Paste the clipboard content into a Claude Code conversation
   2. Wait for Claude Code to apply the changes
   3. Review and confirm the result looks correct
-  4. Run drift snapshot --after-sync to update the baseline
+  4. Run codeferry snapshot --after-sync to update the baseline
 ```
 
 **Step 4 — Paste into Claude Code**
@@ -455,7 +455,7 @@ After Claude Code finishes, verify the change looks correct in your editor.
 **Step 6 — Close the loop**
 
 ```bash
-drift snapshot --after-sync
+codeferry snapshot --after-sync
 ```
 
 Output:
@@ -467,7 +467,7 @@ Output:
   1 component marked as synced
 ```
 
-Now `drift status` is back to `✔ synced 49`.
+Now `codeferry status` is back to `✔ synced 49`.
 
 ---
 
@@ -484,7 +484,7 @@ Suppose a developer adds a dark-mode toggle to `PrefsTab` in `account/page.tsx`.
 **Step 2 — Detect the code-side change**
 
 ```bash
-drift diff --side code
+codeferry diff --side code
 ```
 
 ```
@@ -502,7 +502,7 @@ drift diff --side code
 **Step 3 — Generate the reverse-direction prompt**
 
 ```bash
-drift sync --to design
+codeferry sync --to design
 ```
 
 The generated prompt instructs Claude Design to:
@@ -519,7 +519,7 @@ Paste the prompt into your Claude Design conversation. Claude Design will update
 
 ```bash
 # Make sure Claude Design has written the new files to disk first!
-drift snapshot --after-sync
+codeferry snapshot --after-sync
 ```
 
 ---
@@ -531,7 +531,7 @@ A conflict occurs when **both** the design and the code are modified since the l
 ### How conflicts appear
 
 ```bash
-drift diff
+codeferry diff
 ```
 
 ```
@@ -554,7 +554,7 @@ drift diff
 **Step 1 — Generate a merge prompt**
 
 ```bash
-drift sync --to code --component "shared.jsx::TopNav"
+codeferry sync --to code --component "shared.jsx::TopNav"
 ```
 
 The conflict prompt contains:
@@ -568,10 +568,10 @@ Claude Code will merge the search icon (from design) and the notification badge 
 **Step 3 — Update baseline**
 
 ```bash
-drift snapshot --after-sync
+codeferry snapshot --after-sync
 ```
 
-> **Tip:** For complex conflicts, you can also resolve manually by editing the code file yourself before running `drift snapshot`.
+> **Tip:** For complex conflicts, you can also resolve manually by editing the code file yourself before running `codeferry snapshot`.
 
 ---
 
@@ -580,7 +580,7 @@ drift snapshot --after-sync
 When multiple components are design-ahead (e.g., after a large design refresh), you can sync them all in one operation.
 
 ```bash
-drift diff
+codeferry diff
 ```
 
 ```
@@ -590,7 +590,7 @@ drift diff
 **Sync all design-ahead components at once:**
 
 ```bash
-drift sync --to code --out ./prompts/
+codeferry sync --to code --out ./prompts/
 ```
 
 ```
@@ -620,10 +620,10 @@ Open each `.md` file and paste it into Claude Code one by one (or in parallel Cl
 After all changes are applied:
 
 ```bash
-drift snapshot --after-sync
+codeferry snapshot --after-sync
 ```
 
-> **Workflow tip:** Start with high-impact components (check `drift diff` for `impact: high`) and do them first.
+> **Workflow tip:** Start with high-impact components (check `codeferry diff` for `impact: high`) and do them first.
 
 ---
 
@@ -633,13 +633,13 @@ When you only care about one component:
 
 ```bash
 # Diff only one component
-drift diff --component "extras.jsx::AccountPage"
+codeferry diff --component "extras.jsx::AccountPage"
 
 # Generate prompt for only one component
-drift sync --to code --component "extras.jsx::AccountPage" --copy
+codeferry sync --to code --component "extras.jsx::AccountPage" --copy
 
 # Update baseline for only one component after applying
-drift snapshot --component "extras.jsx::AccountPage"
+codeferry snapshot --component "extras.jsx::AccountPage"
 ```
 
 This is useful when:
@@ -654,15 +654,15 @@ This is useful when:
 If you don't have an `ANTHROPIC_API_KEY`, or want faster execution without API calls:
 
 ```bash
-drift diff --no-ai        # structural diff only
-drift sync --to code --no-ai   # generic conversion hints (no intent analysis)
+codeferry diff --no-ai        # structural diff only
+codeferry sync --to code --no-ai   # generic conversion hints (no intent analysis)
 ```
 
 The prompt still contains:
 - Full design component source
 - Full code file content
 - Tech stack context (Next.js, Tailwind, etc. — from your `drift.config.json`)
-- Framework-specific conversion rules (generated at `drift init` time)
+- Framework-specific conversion rules (generated at `codeferry init` time)
 
 What's missing without AI:
 - Change intent classification (`feature-add`, `style-change`, etc.)
@@ -687,7 +687,7 @@ source ~/.zshrc
 
 When Claude Design creates a brand-new page that doesn't exist in your codebase yet.
 
-**Step 1 — After `drift diff`:**
+**Step 1 — After `codeferry diff`:**
 
 ```
   + NEW DESIGN (3) — not mapped to any code file
@@ -699,7 +699,7 @@ When Claude Design creates a brand-new page that doesn't exist in your codebase 
 **Step 2 — Map to a new (not yet created) code file:**
 
 ```bash
-drift map set "extras.jsx::TemplateEditPage" "src/app/(dashboard)/templates/[id]/edit/page.tsx"
+codeferry map set "extras.jsx::TemplateEditPage" "src/app/(dashboard)/templates/[id]/edit/page.tsx"
 ```
 
 Even if the file doesn't exist yet, you can set the mapping in advance.
@@ -707,7 +707,7 @@ Even if the file doesn't exist yet, you can set the mapping in advance.
 **Step 3 — Generate a creation prompt:**
 
 ```bash
-drift sync --to code --component "extras.jsx::TemplateEditPage"
+codeferry sync --to code --component "extras.jsx::TemplateEditPage"
 ```
 
 The prompt instructs Claude Code to **create** the file, because the code target doesn't exist. Claude Code will scaffold the new route with proper TypeScript types and framework conventions.
@@ -715,7 +715,7 @@ The prompt instructs Claude Code to **create** the file, because the code target
 **Step 4 — After the file is created:**
 
 ```bash
-drift snapshot --component "extras.jsx::TemplateEditPage"
+codeferry snapshot --component "extras.jsx::TemplateEditPage"
 ```
 
 ---
@@ -725,7 +725,7 @@ drift snapshot --component "extras.jsx::TemplateEditPage"
 When the engineering team creates files that have no corresponding design component.
 
 ```
-drift status
+codeferry status
 
   + NEW CODE (5) — not mapped to design
     src/app/api-docs/page.tsx
@@ -734,31 +734,31 @@ drift status
     ...
 ```
 
-These files appear in the status output but drift-sync won't try to sync them unless you explicitly map them.
+These files appear in the status output but codeferry won't try to sync them unless you explicitly map them.
 
 **Option 1 — Map to an existing design component:**
 
 ```bash
-drift map set "other-pages.jsx::HelpPage" "src/app/help/page.tsx"
+codeferry map set "other-pages.jsx::HelpPage" "src/app/help/page.tsx"
 ```
 
-**Option 2 — Leave unmapped (drift-sync will track them as `new-code` but do nothing):**
+**Option 2 — Leave unmapped (codeferry will track them as `new-code` but do nothing):**
 
 No action needed. They'll stay as `new-code` until you map them.
 
 ---
 
-## 14. Checking Sync Status — `drift status`
+## 14. Checking Sync Status — `codeferry status`
 
-`drift status` gives you a bird's-eye view without scanning files.
+`codeferry status` gives you a bird's-eye view without scanning files.
 
 ```bash
-drift status              # shows cached state
-drift status --refresh    # re-scans file system first
+codeferry status              # shows cached state
+codeferry status --refresh    # re-scans file system first
 ```
 
 ```
-  drift status — design ↔ code
+  codeferry status — design ↔ code
 
   Totals: 49 mapped · 90 unmapped design · 35 unmapped code
 
@@ -780,24 +780,24 @@ drift status --refresh    # re-scans file system first
 **Filter by state:**
 
 ```bash
-drift status --filter design-ahead
-drift status --filter conflict
-drift status --filter never-synced
+codeferry status --filter design-ahead
+codeferry status --filter conflict
+codeferry status --filter never-synced
 ```
 
 ---
 
-## 15. Viewing History — `drift log`
+## 15. Viewing History — `codeferry log`
 
 ```bash
-drift log                           # all history (newest first)
-drift log --last 5                  # last 5 entries
-drift log --component "extras.jsx::AccountPage"   # one component
-drift log --status done             # only completed syncs
+codeferry log                           # all history (newest first)
+codeferry log --last 5                  # last 5 entries
+codeferry log --component "extras.jsx::AccountPage"   # one component
+codeferry log --status done             # only completed syncs
 ```
 
 ```
-  drift log — sync history
+  codeferry log — sync history
 
   [2026-05-31 10:44]  AccountPage       design→code   done     feature-add   API Token management
   [2026-05-30 15:22]  TopNav            design→code   done     style-change  search icon added
@@ -848,7 +848,7 @@ drift log --status done             # only completed syncs
 
   // Project context — injected into all sync prompts
   "project": {
-    // Auto-detected by drift init; edit if your stack changes
+    // Auto-detected by codeferry init; edit if your stack changes
     "stack": "Next.js 15 + TypeScript + Tailwind CSS",
 
     // Free-form conventions; injected verbatim into prompts
@@ -885,7 +885,7 @@ drift log --status done             # only completed syncs
 
 ### Customizing include/exclude globs
 
-By default, drift-sync scans `**/*.jsx`, `**/*.tsx`, `**/*.ts` on both sides. To exclude specific directories:
+By default, codeferry scans `**/*.jsx`, `**/*.tsx`, `**/*.ts` on both sides. To exclude specific directories:
 
 ```jsonc
 "code": {
@@ -909,7 +909,7 @@ By default, drift-sync scans `**/*.jsx`, `**/*.tsx`, `**/*.ts` on both sides. To
 If you migrate your styling from CSS Modules to Tailwind, you can update the stack info without touching mappings or snapshots:
 
 ```bash
-drift init --force
+codeferry init --force
 # Answer the detection prompts with updated info
 # Existing mappings and snapshots are preserved
 ```
@@ -920,9 +920,9 @@ drift init --force
 
 ```bash
 rm -rf .drift/
-drift init --design ~/Downloads/my-design --code ~/my-project
-drift map auto
-drift snapshot
+codeferry init --design ~/Downloads/my-design --code ~/my-project
+codeferry map auto
+codeferry snapshot
 ```
 
 ### Update conventions only
@@ -936,7 +936,7 @@ Edit `drift.config.json` directly:
 ]
 ```
 
-No re-initialization needed. The next `drift sync` will pick up the updated conventions.
+No re-initialization needed. The next `codeferry sync` will pick up the updated conventions.
 
 ---
 
@@ -944,7 +944,7 @@ No re-initialization needed. The next `drift sync` will pick up the updated conv
 
 | Variable | Required | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Optional | Enables AI semantic analysis in `drift diff` and `drift sync` |
+| `ANTHROPIC_API_KEY` | Optional | Enables AI semantic analysis in `codeferry diff` and `codeferry sync` |
 
 ```bash
 # Temporary (current session only)
@@ -956,14 +956,14 @@ source ~/.zshrc
 
 # Project-scoped (.env file — never commit this!)
 echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .env
-# drift-sync reads .env automatically
+# codeferry reads .env automatically
 ```
 
 ---
 
 ## 19. Troubleshooting
 
-### `drift init` fails to detect the tech stack
+### `codeferry init` fails to detect the tech stack
 
 **Symptom:** All dimensions show "low confidence" or are empty.
 
@@ -971,24 +971,24 @@ echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .env
 
 ```bash
 # Wrong directory — make sure --code points to the project root
-drift init --design ~/design --code ~/my-project   # ✓ project root
-drift init --design ~/design --code ~/my-project/src  # ✗ src subdir
+codeferry init --design ~/design --code ~/my-project   # ✓ project root
+codeferry init --design ~/design --code ~/my-project/src  # ✗ src subdir
 
 # Missing package.json — ensure the code directory has one
 ls ~/my-project/package.json   # must exist
 
 # Skip detection and set manually
-drift init --skip-detect
+codeferry init --skip-detect
 # Then edit .drift/drift.config.json directly
 ```
 
-### `drift diff` reports no changes after I updated the design
+### `codeferry diff` reports no changes after I updated the design
 
 **Cause 1 — Snapshot not yet taken:**
 
 ```bash
-drift snapshot   # Take an initial baseline first
-drift diff       # Now changes will show up
+codeferry snapshot   # Take an initial baseline first
+codeferry diff       # Now changes will show up
 ```
 
 **Cause 2 — Files are excluded:**
@@ -1015,12 +1015,12 @@ cat .drift/drift.config.json | grep "root"
 **Fix:**
 
 ```bash
-drift map set "other-pages.jsx::GalleryPage" "src/app/(dashboard)/gallery/page.tsx"
+codeferry map set "other-pages.jsx::GalleryPage" "src/app/(dashboard)/gallery/page.tsx"
 ```
 
 **Why it happens:** The filename similarity strategy scores `gallery.ts` and `gallery/page.tsx` similarly. App Router's nested `(route-groups)` reduce the score further. This is a known limitation being improved in v0.6.0.
 
-### `drift sync` clipboard output is empty
+### `codeferry sync` clipboard output is empty
 
 **Symptom:** The clipboard command runs but nothing is pasted.
 
@@ -1028,21 +1028,21 @@ drift map set "other-pages.jsx::GalleryPage" "src/app/(dashboard)/gallery/page.t
 
 ```bash
 # Write to a file instead
-drift sync --to code --out ./prompts/
+codeferry sync --to code --out ./prompts/
 # Then open the .md file manually
 ```
 
-### `drift snapshot --after-sync` updates 0 components
+### `codeferry snapshot --after-sync` updates 0 components
 
 **Symptom:** The output says "0 components updated".
 
-**Cause:** `drift sync` marks components as `in-progress`, but if you ran `drift snapshot` (without `--after-sync`) before this, it already cleared the queue.
+**Cause:** `codeferry sync` marks components as `in-progress`, but if you ran `codeferry snapshot` (without `--after-sync`) before this, it already cleared the queue.
 
 **Fix:**
 
 ```bash
 # Use --component to force-update the specific component
-drift snapshot --component "extras.jsx::AccountPage"
+codeferry snapshot --component "extras.jsx::AccountPage"
 ```
 
 ### Component extracted with wrong line ranges
@@ -1057,24 +1057,24 @@ drift snapshot --component "extras.jsx::AccountPage"
 
 ## 20. FAQ
 
-**Q: Does drift-sync modify my code files directly?**  
-A: No. drift-sync only generates Markdown prompt files. All actual code changes are performed by Claude Code or Claude Design when you paste the prompt. drift-sync is a "prompt factory" — it never touches your source code.
+**Q: Does codeferry modify my code files directly?**  
+A: No. codeferry only generates Markdown prompt files. All actual code changes are performed by Claude Code or Claude Design when you paste the prompt. codeferry is a "prompt factory" — it never touches your source code.
 
-**Q: Where should I run `drift init`?**  
+**Q: Where should I run `codeferry init`?**  
 A: From any directory. The `.drift/` folder is created in your **current working directory** (CWD). A common choice is a parent directory that sits above both your design and code directories, e.g.:
 
 ```
-~/projects/             ← run drift init here
+~/projects/             ← run codeferry init here
   design-exports/       ← --design path
   my-app/               ← --code path
   .drift/               ← created here
 ```
 
-**Q: Can I use drift-sync with a Vue or Svelte project?**  
+**Q: Can I use codeferry with a Vue or Svelte project?**  
 A: Yes. The core sync engine is framework-agnostic. Stack detection supports Vue + Nuxt and Svelte + SvelteKit. The generated prompts include framework-specific conversion hints based on what was detected.
 
 **Q: What if my design exports HTML files alongside JSX?**  
-A: drift-sync scans HTML files for `<script type="text/babel">` blocks and extracts JSX components from them. Include `**/*.html` in `design.include` to enable this.
+A: codeferry scans HTML files for `<script type="text/babel">` blocks and extracts JSX components from them. Include `**/*.html` in `design.include` to enable this.
 
 **Q: The AI analysis keeps timing out. What should I do?**  
 A: Reduce the batch size:
@@ -1089,27 +1089,27 @@ A: Reduce the batch size:
 Or skip AI for routine changes:
 
 ```bash
-drift diff --no-ai
-drift sync --to code --no-ai
+codeferry diff --no-ai
+codeferry sync --to code --no-ai
 ```
 
 **Q: Can multiple developers share a `.drift/` directory?**  
 A: It's designed to be used by one developer per design↔code pair. For team use, commit `.drift/drift.config.json` and `.drift/registry.json` to source control (they're stable state), but add `.drift/queue.json` and `.drift/snapshots/` to `.gitignore` (they're ephemeral state).
 
-**Q: How do I update drift-sync?**  
-A: `npm update -g drift-sync` or `pnpm update -g drift-sync`.
+**Q: How do I update codeferry?**  
+A: `npm update -g codeferry` or `pnpm update -g codeferry`.
 
 **Q: What happens when Claude Design exports and overwrites all files?**  
-A: drift-sync detects file-level hash changes first (fast path), then re-extracts only the components that actually changed. Even if Claude Design rewrites 20 JSX files, only the components with genuine content changes will appear in `drift diff` output. This avoids false positives from Claude Design's full-directory export.
+A: codeferry detects file-level hash changes first (fast path), then re-extracts only the components that actually changed. Even if Claude Design rewrites 20 JSX files, only the components with genuine content changes will appear in `codeferry diff` output. This avoids false positives from Claude Design's full-directory export.
 
-**Q: Can I run drift-sync in CI?**  
+**Q: Can I run codeferry in CI?**  
 A: Yes, for drift detection (not sync):
 
 ```bash
 # In CI, just check if drift has occurred
-drift diff --no-ai
-if drift status | grep -q "design-ahead\|code-ahead\|conflict"; then
-  echo "Drift detected! Run drift sync to resolve."
+codeferry diff --no-ai
+if codeferry status | grep -q "design-ahead\|code-ahead\|conflict"; then
+  echo "Drift detected! Run codeferry sync to resolve."
   exit 1
 fi
 ```

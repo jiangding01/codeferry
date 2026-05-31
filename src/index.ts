@@ -11,15 +11,15 @@ import type { ComponentSyncStatus } from './types/index.js';
 const program = new Command();
 
 program
-  .name('drift')
+  .name('codeferry')
   .description('CLI tool for bidirectional sync between Claude Design and Claude Code')
   .version('0.4.0');
 
-// ── drift init ───────────────────────────────────────────────────────────────
+// ── codeferry init ───────────────────────────────────────────────────────────────
 
 program
   .command('init')
-  .description('初始化 drift-sync，创建 .drift/ 目录和初始快照')
+  .description('初始化 codeferry，创建 .drift/ 目录和初始快照')
   .requiredOption('--design <path>', '设计稿根目录路径')
   .requiredOption('--code <path>', '代码项目根目录路径')
   .option('--force', '强制重新初始化', false)
@@ -33,13 +33,13 @@ program
     }
   });
 
-// ── drift map ────────────────────────────────────────────────────────────────
+// ── codeferry map ────────────────────────────────────────────────────────────────
 
 const mapCmd = program
   .command('map')
   .description('管理设计组件与代码文件的映射关系');
 
-// drift map (default: list)
+// codeferry map (default: list)
 mapCmd
   .command('list', { isDefault: true })
   .description('显示所有映射关系')
@@ -53,7 +53,7 @@ mapCmd
     }
   });
 
-// drift map auto
+// codeferry map auto
 mapCmd
   .command('auto')
   .description('运行自动映射策略（文件名匹配 + 导出名匹配）')
@@ -66,7 +66,7 @@ mapCmd
     }
   });
 
-// drift map set <id> <path>
+// codeferry map set <id> <path>
 mapCmd
   .command('set <id> <path>')
   .description('手动设置组件到代码文件的映射')
@@ -79,7 +79,7 @@ mapCmd
     }
   });
 
-// drift map unset <id>
+// codeferry map unset <id>
 mapCmd
   .command('unset <id>')
   .description('移除组件映射')
@@ -92,7 +92,7 @@ mapCmd
     }
   });
 
-// ── drift status ─────────────────────────────────────────────────────────────
+// ── codeferry status ─────────────────────────────────────────────────────────────
 
 const VALID_STATUSES: ComponentSyncStatus[] = [
   'synced', 'design-ahead', 'code-ahead', 'both-changed',
@@ -121,7 +121,7 @@ program
     }
   });
 
-// ── drift diff ───────────────────────────────────────────────────────────────
+// ── codeferry diff ───────────────────────────────────────────────────────────────
 
 program
   .command('diff')
@@ -146,7 +146,7 @@ program
     }
   });
 
-// ── drift sync ───────────────────────────────────────────────────────────────
+// ── codeferry sync ───────────────────────────────────────────────────────────────
 
 program
   .command('sync')
@@ -175,13 +175,13 @@ program
     }
   });
 
-// ── drift snapshot ───────────────────────────────────────────────────────────
+// ── codeferry snapshot ───────────────────────────────────────────────────────────
 
 program
   .command('snapshot')
   .description('将当前双侧状态标记为新基线，闭合同步循环')
   .option('--component <name>', '只更新指定组件的基线')
-  .option('--after-sync', '仅更新同步队列中 in-progress 状态的组件（drift sync 执行后使用）', false)
+  .option('--after-sync', '仅更新同步队列中 in-progress 状态的组件（codeferry sync 执行后使用）', false)
   .action(async (opts) => {
     try {
       await snapshotCommand({
@@ -194,7 +194,7 @@ program
     }
   });
 
-// ── drift log ────────────────────────────────────────────────────────────────
+// ── codeferry log ────────────────────────────────────────────────────────────────
 
 const VALID_QUEUE_STATUSES = ['pending', 'in-progress', 'done', 'skipped', 'conflict'];
 

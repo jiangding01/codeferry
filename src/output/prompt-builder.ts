@@ -126,7 +126,7 @@ function buildSyncGuide(analysis?: AIAnalysisResult | null): string {
       '1. 仔细对比上方的设计内容与代码实现',
       '2. 识别差异并评估是否需要同步',
       '3. 在代码侧应用必要的更改',
-      '4. 完成后运行 `drift snapshot` 更新同步基线',
+      '4. 完成后运行 `codeferry snapshot` 更新同步基线',
     ].join('\n');
   }
   return analysis.syncGuide.map((step, i) => `${i + 1}. ${step}`).join('\n');
@@ -159,7 +159,7 @@ export function buildSyncPrompt(ctx: PromptContext): string {
   const sections: string[] = [];
 
   // ── Header ──
-  sections.push(`# drift-sync 同步任务 · ${dirLabel}`);
+  sections.push(`# codeferry 同步任务 · ${dirLabel}`);
   sections.push('');
 
   // ── Overview ──
@@ -231,7 +231,7 @@ export function buildSyncPrompt(ctx: PromptContext): string {
     '- **只同步意图**，不直接复制代码 — 理解变更的目的，用目标侧的惯用方式实现',
     '- **保持目标侧的工程结构**和命名规范，不要引入新的架构模式',
     '- 如有不确定的地方，**保留目标侧的现有实现**，并在回复中说明',
-    '- 完成后请告知已完成，用户将运行 `drift snapshot` 更新同步基线',
+    '- 完成后请告知已完成，用户将运行 `codeferry snapshot` 更新同步基线',
   ].join('\n'));
   sections.push('');
 

@@ -1,8 +1,8 @@
-# drift-sync — Project Guide for Claude
+# codeferry — Project Guide for Claude
 
 ## Project Overview
 
-drift-sync is a **bidirectional sync CLI** between Claude Design (JSX prototypes) and Claude Code (production code). It never modifies source files directly — it generates context-rich Markdown prompts that the user pastes into Claude Code or Claude Design.
+codeferry is a **bidirectional sync CLI** between Claude Design (JSX prototypes) and Claude Code (production code). It never modifies source files directly — it generates context-rich Markdown prompts that the user pastes into Claude Code or Claude Design.
 
 **Key constraint:** The tool is framework-agnostic. Core logic (scanner, extractor, differ, mapper) must never hardcode framework-specific knowledge. Framework hints go in `drift.config.json → project.designToCodeHints` only.
 
@@ -44,8 +44,8 @@ pnpm run test:run    # vitest run (single pass) — use this before committing
 pnpm run lint        # tsc --noEmit (zero errors expected)
 
 # Local testing
-npm link             # makes `drift` available globally
-drift --version      # verify link works
+npm link             # makes `codeferry` available globally
+codeferry --version      # verify link works
 ```
 
 **Before every commit:** `pnpm run lint && node_modules/.bin/vitest run`
@@ -76,15 +76,15 @@ both changed                   → 'both-changed' (conflict)
 
 ### 6. StackInfo persistence
 `detectStack()` computes `designToCodeHints` / `codeToDesignHints`. These must be:
-- Persisted to `drift.config.json → project.designToCodeHints/codeToDesignHints` during `drift init`
-- Read back from config in `drift sync` via `tryLoadStackInfo()`
+- Persisted to `drift.config.json → project.designToCodeHints/codeToDesignHints` during `codeferry init`
+- Read back from config in `codeferry sync` via `tryLoadStackInfo()`
 - Regenerated if user edits stack info in the init confirmation flow
 
 ### 7. Queue state machine
 `pending → in-progress → done/skipped`
-- `drift diff` writes `pending` items
-- `drift sync` updates them to `in-progress`
-- `drift snapshot --after-sync` reads `in-progress`, updates baselines, marks `done`
+- `codeferry diff` writes `pending` items
+- `codeferry sync` updates them to `in-progress`
+- `codeferry snapshot --after-sync` reads `in-progress`, updates baselines, marks `done`
 
 ---
 
@@ -93,7 +93,7 @@ both changed                   → 'both-changed' (conflict)
 | Issue | Severity | Planned fix |
 |---|---|---|
 | Auto-mapper scores API routers and page components equally | Medium | v0.6.0: smarter path scoring for App Router `(route-groups)` |
-| `drift diff` shows full component vs empty baseline (not a real diff) | Medium | v0.7.0: store baseline content in snapshots |
+| `codeferry diff` shows full component vs empty baseline (not a real diff) | Medium | v0.7.0: store baseline content in snapshots |
 | Version hardcoded in `src/index.ts` as `'0.4.0'` | Low | v0.5.0: read from package.json via `createRequire` |
 | `pnpm-workspace.yaml` uses legacy `allowBuilds` syntax | Low | v0.5.0: migrate to `onlyBuiltDependencies` |
 
