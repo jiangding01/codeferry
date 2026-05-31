@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { join } from 'node:path';
-import { autoMap, getCandidates } from '../src/core/mapper.js';
+import { autoMap, getCandidates, buildHtmlBridgeIndex } from '../src/core/mapper.js';
 import type { ComponentEntry } from '../src/types/index.js';
 
 const CODE_FIXTURES = join(import.meta.dirname, 'fixtures', 'mini-code');
+const HTML_BRIDGE_FIXTURES = join(import.meta.dirname, 'fixtures', 'html-bridge');
 
 // ── Test helpers ──────────────────────────────────────────────────────────────
 
@@ -120,6 +121,30 @@ describe('autoMap — multiple components', () => {
     expect(result.mapped).toHaveLength(1);
     expect(result.mapped[0].componentId).toBe('design.jsx::Seal');
     expect(result.unmapped).toContain('design.jsx::NonExistentWidget');
+  });
+});
+
+// ── HTML bridge index ─────────────────────────────────────────────────────────
+
+describe('buildHtmlBridgeIndex', () => {
+  it('parses index.html and extracts entry file imports', async () => {
+    const index = await buildHtmlBridgeIndex(HTML_BRIDGE_FIXTURES);
+    // html-bridge/index.html → src/main.jsx → imports Dashboard, Header, Footer
+    expect(index.size).toBeGreaterThan(0);
+    // Dashboard import: ./pages/Dashboard.jsx → "src/pages/dashboard"
+    const dashKey = [...index.keys()].find((k) => k.includes('dashboard'));
+    expect(dashKey).toBeDefined();
+    expect(index.get(dashKey!)!).toContain('pages');
+  });
+
+  it('returns empty map when no index.html exists', async () => {
+    const index = await buildHtmlBridgeIndex('/non-existent-path-xyz');
+    expect(index.size).toBe(0);
+  });
+
+  it('returns empty map gracefully on parse errors (never throws)', async () => {
+    // Pass the code fixtures dir (no index.html) — should not throw
+    await expect(buildHtmlBridgeIndex(CODE_FIXTURES)).resolves.toBeDefined();
   });
 });
 

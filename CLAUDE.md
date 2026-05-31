@@ -98,10 +98,9 @@ both changed                   → 'both-changed' (conflict)
 
 | Issue | Severity | Planned fix |
 |---|---|---|
-| Auto-mapper scores API routers and page components equally | Medium | v0.6.0: smarter path scoring for App Router `(route-groups)` |
 | `codeferry diff` shows full component vs empty baseline (not a real diff) | Medium | v0.7.0: store baseline content in snapshots |
-| Version hardcoded in `src/index.ts` as `'0.5.0'` | Low | v0.6.0: read from package.json via `createRequire` |
-| `pnpm-workspace.yaml` uses legacy `allowBuilds` syntax | Low | v0.5.0: migrate to `onlyBuiltDependencies` |
+| HTML Bridge only traces 1 level of imports (App.jsx imports not followed) | Low | v0.7.0: recursive import graph traversal |
+| `pnpm-workspace.yaml` uses legacy `allowBuilds` syntax | Low | Next release: migrate to `onlyBuiltDependencies` |
 
 ---
 
@@ -111,8 +110,8 @@ Tests are in `tests/` using Vitest. Fixtures are in `tests/fixtures/`.
 
 - **Core modules** (`extractor`, `mapper`, `differ`, `scanner`) have unit tests — keep them passing
 - **Commands** are NOT unit-tested (they're thin I/O wrappers) — test manually
-- **Mock Claude API:** `tests/analyzer.test.ts` mocks `@anthropic-ai/sdk` — do not make real API calls in tests
-- **File fixtures:** `tests/fixtures/mini-design/` and `tests/fixtures/mini-code/` — keep them minimal and stable
+- **Mock Claude API:** `tests/analyzer.test.ts` and `tests/ai-mapper.test.ts` mock `@anthropic-ai/sdk` — do not make real API calls in tests
+- **File fixtures:** `tests/fixtures/mini-design/` and `tests/fixtures/mini-code/` for scanner/extractor/mapper tests; `tests/fixtures/html-bridge/` for HTML Bridge strategy tests — keep them minimal and stable
 - When adding a new core module, add a corresponding test file
 
 ---

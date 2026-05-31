@@ -7,9 +7,9 @@ For architecture details, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 ---
 
-## Current Status: v0.5.1 — Multi-Workspace + Bug Fixes
+## Current Status: v0.6.0 — Mapping Accuracy
 
-All phases are fully implemented and tested (90 unit tests, 0 TypeScript errors):
+All phases are fully implemented and tested (102 unit tests, 0 TypeScript errors):
 
 | Phase | Status | Highlights |
 |---|---|---|
@@ -18,19 +18,15 @@ All phases are fully implemented and tested (90 unit tests, 0 TypeScript errors)
 | Phase 3 — AI + Prompts | ✅ Done | Analyzer (Claude API), PromptBuilder (bidirectional), `codeferry sync`, queue |
 | Phase 4 — Polish | ✅ Done | `codeferry log`, large-file truncation, test coverage, bug fixes |
 | Phase 5 — Multi-Workspace | ✅ Done | `codeferry workspace`, WorkspaceManager, auto-migration, `-w` global flag |
+| Phase 6 — Mapping Accuracy | ✅ Done | HTML Bridge strategy, AI-assisted fallback, `codeferry map suggest`, threshold config |
 
 ---
 
 ## Upcoming
 
-### v0.6.0 — Mapping Accuracy
+### v0.7.0 — Diff Quality
 
-**Goal:** Reduce the number of components that fall through to manual mapping.
-
-- [ ] HTML bridge mapping strategy — parse the design's HTML entry file to discover which JSX components it renders, and resolve those component names to code paths
-- [ ] AI-assisted mapping fallback — for components that neither filename nor export-name strategies can resolve, ask Claude to suggest the best code file given the component name and available file list
-- [ ] `codeferry map suggest` — interactive command to review and confirm AI mapping suggestions
-- [ ] Confidence threshold configuration in `drift.config.json`
+**Goal:** Show meaningful diffs instead of "baseline → full content" placeholders.
 
 ---
 
@@ -39,7 +35,7 @@ All phases are fully implemented and tested (90 unit tests, 0 TypeScript errors)
 **Goal:** Show meaningful diffs instead of "baseline → full content" placeholders.
 
 - [ ] Store component content snapshots alongside hash snapshots so diffs show real line-by-line changes against the actual baseline content
-- [ ] Colored side-by-side diff view in `codeferry diff` terminal output
+- [ ] Colored unified diff view in `codeferry diff` terminal output
 - [ ] `codeferry diff --format json` — machine-readable output for CI / editor integrations
 
 ---

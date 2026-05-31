@@ -36,6 +36,15 @@ export interface DriftConfig {
     maxConcurrency: number;
   };
 
+  mapping?: {
+    /**
+     * Minimum confidence threshold for `codeferry map auto`.
+     * Candidates below this score are skipped and left unmapped.
+     * @default 0.5
+     */
+    autoThreshold?: number;
+  };
+
   project?: {
     stack?: string;
     conventions?: string[];
@@ -227,6 +236,14 @@ export interface MappingCandidate {
   codePath: string;
   confidence: number;
   reason: string;
+}
+
+/** Result returned by the AI mapping fallback for a single component. */
+export interface AIMappingResult {
+  componentId: string;
+  codePath: string;
+  confidence: number;
+  reasoning: string;
 }
 
 // ── AI Analysis ──

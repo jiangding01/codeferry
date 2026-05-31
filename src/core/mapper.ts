@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join, normalize, relative } from 'node:path';
 import { resolvePath } from '../utils/path.js';
 import type { ComponentEntry, MappingCandidate } from '../types/index.js';
 
@@ -102,21 +102,195 @@ function strategyExportName(
   return candidates;
 }
 
+// ── Strategy 3: HTML bridge ─────────────────────────────────────────────────
+
+/**
+ * Path-segment index built by parsing the design project's HTML entry file.
+ * Key: normalized design file path (relative to designRoot, no extension, lowercase)
+ * Value: path segments array — e.g. ["pages", "dashboard"]
+ *
+ * This is cached per `autoMap` call and shared across all components.
+ */
+export type HtmlBridgeIndex = Map<string, string[]>;
+
+/**
+ * Parse the design root's `index.html` (Vite / Claude Design export format)
+ * to discover the JS entry file, then extract 1 level of import paths.
+ *
+ * Returns a map of normalizedDesignPath → path segments, or an empty map
+ * if no index.html is found or parsing fails. Never throws.
+ *
+ * Example:
+ *   index.html → <script src="/src/main.jsx">
+ *   main.jsx   → import Dashboard from './pages/Dashboard.jsx'
+ *              → import Header from './components/Header.jsx'
+ *   Result: { "pages/dashboard" → ["pages", "dashboard"],
+ *             "components/header" → ["components", "header"] }
+ */
+export async function buildHtmlBridgeIndex(designRoot: string): Promise<HtmlBridgeIndex> {
+  const index: HtmlBridgeIndex = new Map();
+
+  try {
+    // ── Step 1: find and read index.html ─────────────────────────────────────
+    const htmlPath = join(designRoot, 'index.html');
+    let htmlContent: string;
+    try {
+      htmlContent = await readFile(htmlPath, 'utf8');
+    } catch {
+      return index; // No index.html — strategy silently yields nothing
+    }
+
+    // ── Step 2: extract <script src="..."> ────────────────────────────────────
+    const scriptSrcRe = /<script[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi;
+    const entrySrcs: string[] = [];
+    let m: RegExpExecArray | null;
+    // eslint-disable-next-line no-cond-assign
+    while ((m = scriptSrcRe.exec(htmlContent)) !== null) {
+      const src = m[1];
+      if (src) entrySrcs.push(src);
+    }
+
+    if (entrySrcs.length === 0) return index;
+
+    // ── Step 3: read the first JS/JSX/TSX entry file ─────────────────────────
+    const entryRelative = entrySrcs[0]!.replace(/^\//, ''); // strip leading /
+    const entryAbs = join(designRoot, entryRelative);
+    let entryContent: string;
+    try {
+      entryContent = await readFile(entryAbs, 'utf8');
+    } catch {
+      return index;
+    }
+
+    // ── Step 4: parse import statements (1 level deep) ───────────────────────
+    const entryDir = dirname(entryAbs);
+    // Match: import X from './foo' | import { X } from '../bar' | export { X } from './baz'
+    const importRe = /(?:^|\n)\s*(?:import|export)[^'"]*from\s+['"]([^'"]+)['"]/g;
+
+    // eslint-disable-next-line no-cond-assign
+    while ((m = importRe.exec(entryContent)) !== null) {
+      const importPath = m[1];
+      if (!importPath || !importPath.startsWith('.')) continue; // skip external modules
+
+      // Resolve the imported path relative to the entry file
+      const resolvedAbs = normalize(join(entryDir, importPath));
+
+      // Make it relative to the design root and normalize to lowercase, no extension
+      let relToDesign = relative(designRoot, resolvedAbs)
+        .replace(/\\/g, '/') // Windows path separator
+        .replace(/\.(jsx?|tsx?)$/, '') // strip extension
+        .toLowerCase();
+
+      // Strip leading "./"
+      if (relToDesign.startsWith('./')) relToDesign = relToDesign.slice(2);
+
+      if (!relToDesign || relToDesign.startsWith('..')) continue; // outside designRoot
+
+      const segments = relToDesign.split('/').filter(Boolean);
+      if (segments.length > 0) {
+        index.set(relToDesign, segments);
+      }
+    }
+  } catch {
+    // Any unexpected error: return empty index, don't break the mapping flow
+  }
+
+  return index;
+}
+
+/**
+ * Strategy 3: HTML bridge.
+ *
+ * For a component whose design file is referenced in the HTML entry import
+ * graph, score code files by how many path segments they share with the
+ * design-side path structure.
+ *
+ * Confidence range: 0.55 – 0.80 (intentionally below export-name at 0.95
+ * and filename-exact at 0.85, so it acts as a tiebreaker or fallback booster).
+ */
+function strategyHtmlBridge(
+  component: ComponentEntry,
+  codeFiles: string[],
+  bridgeIndex: HtmlBridgeIndex,
+): MappingCandidate[] {
+  if (bridgeIndex.size === 0) return [];
+
+  // Normalize the component's design file path to match bridge index keys
+  const designPathNorm = component.designFile
+    .replace(/\\/g, '/')
+    .replace(/\.(jsx?|tsx?)$/, '')
+    .toLowerCase()
+    .replace(/^\.\//, '');
+
+  // Try exact key match first, then basename match
+  let designSegments = bridgeIndex.get(designPathNorm);
+
+  if (!designSegments) {
+    // Fallback: match by basename (last segment)
+    const basename = designPathNorm.split('/').pop() ?? '';
+    for (const [key, segs] of bridgeIndex) {
+      if (key.split('/').pop() === basename) {
+        designSegments = segs;
+        break;
+      }
+    }
+  }
+
+  if (!designSegments || designSegments.length === 0) return [];
+
+  const candidates: MappingCandidate[] = [];
+  const componentSlug = normalizeForMatch(component.name);
+
+  for (const file of codeFiles) {
+    const fileLower = file.toLowerCase().replace(/\.(tsx?|jsx?)$/, '');
+    const fileSegments = fileLower.split('/').filter(Boolean);
+
+    // Count how many design path segments appear in the code file path
+    let overlap = 0;
+    for (const seg of designSegments) {
+      const segNorm = seg.replace(/-/g, '');
+      if (fileSegments.some((fs) => fs.replace(/-/g, '') === segNorm)) {
+        overlap++;
+      }
+    }
+
+    if (overlap === 0) continue;
+
+    // Extra boost if the component's slug also appears in the code path
+    const nameInPath = fileSegments.some((fs) => {
+      const fsCompact = fs.replace(/[-_.]/g, '');
+      return fsCompact === componentSlug.replace(/-/g, '');
+    });
+
+    const baseScore = 0.45 + (overlap / designSegments.length) * 0.3;
+    const confidence = nameInPath ? Math.min(0.80, baseScore + 0.15) : baseScore;
+
+    if (confidence >= 0.5) {
+      candidates.push({
+        designComponentId: component.id,
+        codePath: file,
+        confidence,
+        reason: `路径段匹配 ${overlap}/${designSegments.length}（HTML bridge）`,
+      });
+    }
+  }
+
+  return candidates;
+}
+
 // ── Merge & select best candidate ──────────────────────────────────────────
 
 function mergeCandidates(
   byName: MappingCandidate[],
   byExport: MappingCandidate[],
+  byBridge: MappingCandidate[],
 ): MappingCandidate[] {
   const byPath = new Map<string, MappingCandidate>();
 
-  for (const c of byName) {
-    byPath.set(c.codePath, c);
-  }
-  for (const c of byExport) {
+  const mergeSingle = (c: MappingCandidate) => {
     const existing = byPath.get(c.codePath);
     if (existing) {
-      // Both strategies agree → boost confidence
+      // Multiple strategies agree → boost confidence
       byPath.set(c.codePath, {
         ...c,
         confidence: Math.min(0.99, existing.confidence + 0.1),
@@ -125,7 +299,11 @@ function mergeCandidates(
     } else {
       byPath.set(c.codePath, c);
     }
-  }
+  };
+
+  for (const c of byName) mergeSingle(c);
+  for (const c of byExport) mergeSingle(c);
+  for (const c of byBridge) mergeSingle(c);
 
   return [...byPath.values()].sort((a, b) => b.confidence - a.confidence);
 }
@@ -152,6 +330,20 @@ async function preReadFiles(
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
+export interface AutoMapOptions {
+  /**
+   * Minimum confidence to accept a candidate as a mapping.
+   * Read from `config.mapping?.autoThreshold` in commands; defaults to 0.5.
+   */
+  threshold?: number;
+  /**
+   * Absolute path to the design root directory.
+   * Enables the HTML bridge strategy (Strategy 3).
+   * If omitted, Strategy 3 is skipped.
+   */
+  designRoot?: string;
+}
+
 export interface AutoMapResult {
   mapped: Array<{ componentId: string; candidate: MappingCandidate }>;
   unmapped: string[];
@@ -159,7 +351,14 @@ export interface AutoMapResult {
 
 /**
  * Run automatic mapping strategies for the given components against the code files.
- * Only components with confidence >= threshold (default 0.5) are mapped.
+ *
+ * Strategies (in order of confidence, run in parallel):
+ *   1. File-name matching
+ *   2. Export-name matching (reads file contents once)
+ *   3. HTML bridge (traces index.html → entry JS → imports, if designRoot provided)
+ *
+ * Only components with best-candidate confidence >= options.threshold (default 0.5)
+ * are mapped; others are returned in `unmapped`.
  *
  * Files are pre-read once and shared across all component checks (O(M) reads total,
  * not O(N×M)).
@@ -168,10 +367,18 @@ export async function autoMap(
   components: ComponentEntry[],
   codeFiles: string[],
   codeRoot: string,
-  threshold = 0.5,
+  options: AutoMapOptions = {},
 ): Promise<AutoMapResult> {
+  const threshold = options.threshold ?? 0.5;
+
   // Pre-read all code files once to avoid N×M I/O
   const fileContents = await preReadFiles(codeFiles, codeRoot);
+
+  // Build HTML bridge index (once, shared across all components)
+  let bridgeIndex: HtmlBridgeIndex = new Map();
+  if (options.designRoot) {
+    bridgeIndex = await buildHtmlBridgeIndex(options.designRoot);
+  }
 
   const mapped: AutoMapResult['mapped'] = [];
   const unmapped: string[] = [];
@@ -179,8 +386,9 @@ export async function autoMap(
   for (const component of components) {
     const byName = strategyFileName(component, codeFiles);
     const byExport = strategyExportName(component, fileContents);
+    const byBridge = strategyHtmlBridge(component, codeFiles, bridgeIndex);
 
-    const candidates = mergeCandidates(byName, byExport);
+    const candidates = mergeCandidates(byName, byExport, byBridge);
     const best = candidates[0];
 
     if (best && best.confidence >= threshold) {
@@ -195,15 +403,24 @@ export async function autoMap(
 
 /**
  * Run all strategies and return all candidates (sorted by confidence) for a single component.
- * Useful for interactive mapping inspection.
+ * Useful for interactive mapping inspection and `map suggest`.
  */
 export async function getCandidates(
   component: ComponentEntry,
   codeFiles: string[],
   codeRoot: string,
+  options: { designRoot?: string } = {},
 ): Promise<MappingCandidate[]> {
   const fileContents = await preReadFiles(codeFiles, codeRoot);
+
+  let bridgeIndex: HtmlBridgeIndex = new Map();
+  if (options.designRoot) {
+    bridgeIndex = await buildHtmlBridgeIndex(options.designRoot);
+  }
+
   const byName = strategyFileName(component, codeFiles);
   const byExport = strategyExportName(component, fileContents);
-  return mergeCandidates(byName, byExport);
+  const byBridge = strategyHtmlBridge(component, codeFiles, bridgeIndex);
+
+  return mergeCandidates(byName, byExport, byBridge);
 }

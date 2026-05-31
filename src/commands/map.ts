@@ -5,12 +5,13 @@ import Table from 'cli-table3';
 import inquirer from 'inquirer';
 import { resolveStore } from '../state/resolve-store.js';
 import { autoMap } from '../core/mapper.js';
+import { suggestMappings } from '../core/ai-mapper.js';
 import { computeStatus } from '../core/differ.js';
 import { hashMultiple } from '../utils/hash.js';
 import { resolvePath } from '../utils/path.js';
 import { log } from '../utils/logger.js';
 import { spinner, statusLabel } from '../output/reporter.js';
-import type { ComponentRegistry } from '../types/index.js';
+import type { ComponentEntry, ComponentRegistry } from '../types/index.js';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -127,15 +128,19 @@ export async function mapAutoCommand(opts: { workspace?: string } = {}): Promise
   // where the same code file maps to multiple design components.
   const searchFiles = allKnownCodeFiles(registry);
 
+  const threshold = config.mapping?.autoThreshold ?? 0.5;
   const s = spinner(`正在对 ${unmappedEntries.length} 个未映射组件运行自动映射...`);
   s.start();
 
-  const result = await autoMap(unmappedEntries, searchFiles, codeRoot);
+  const result = await autoMap(unmappedEntries, searchFiles, codeRoot, {
+    threshold,
+    designRoot: resolvePath(config.design.root),
+  });
 
   s.succeed(`自动映射完成：${result.mapped.length} 个成功，${result.unmapped.length} 个未匹配`);
 
   if (result.mapped.length === 0) {
-    log.warn('未找到任何匹配。尝试 drift map set <id> <path> 手动建立映射');
+    log.warn('未找到任何匹配。尝试 codeferry map suggest（AI 辅助）或 codeferry map set <id> <path> 手动指定');
     return;
   }
 
@@ -213,7 +218,7 @@ export async function mapAutoCommand(opts: { workspace?: string } = {}): Promise
   applySpinner.succeed('注册表已更新');
   log.success(`映射完成：${result.mapped.length} 个组件已建立映射关系`);
   if (result.unmapped.length > 0) {
-    log.dim(`  ${result.unmapped.length} 个组件未找到匹配，可用 drift map set 手动指定`);
+    log.dim(`  ${result.unmapped.length} 个组件未找到匹配，可运行 codeferry map suggest 使用 AI 辅助匹配`);
   }
 }
 
@@ -333,6 +338,248 @@ export async function mapUnsetCommand(componentId: string, opts: { workspace?: s
   await store.saveRegistry(registry);
 
   log.success(`已移除映射：${chalk.bold(entry.name)}`);
+}
+
+// ── Suggest mapping (AI-assisted) ────────────────────────────────────────────
+
+/** Source of a mapping suggestion: auto-strategy or AI fallback. */
+type SuggestionSource = 'auto' | 'ai';
+
+interface MappingSuggestion {
+  component: ComponentEntry;
+  codePath: string;
+  confidence: number;
+  reason: string;
+  source: SuggestionSource;
+}
+
+/**
+ * Interactive AI-assisted mapping command.
+ *
+ * Flow:
+ *   1. Run Strategy 1+2+3 (auto) on all unmapped components
+ *   2. For components still unmapped: call AI mapper (unless --no-ai)
+ *   3. Present all suggestions in a summary table
+ *   4. For each suggestion: Accept / Skip / Enter path manually
+ *   5. Write accepted mappings to registry in one atomic save
+ */
+export async function mapSuggestCommand(opts: { noAi?: boolean; workspace?: string } = {}): Promise<void> {
+  const { store } = await resolveStore(opts.workspace);
+
+  const [config, registry] = await Promise.all([
+    store.getConfig(),
+    store.getRegistry(),
+  ]);
+
+  if (!config || !registry) {
+    log.error('配置或注册表缺失，请重新运行 codeferry init');
+    process.exit(1);
+  }
+
+  const codeRoot = resolvePath(config.code.root);
+  const designRoot = resolvePath(config.design.root);
+
+  const unmappedEntries = Object.values(registry.components).filter(
+    (e) => e.codeFiles.length === 0,
+  );
+
+  if (unmappedEntries.length === 0) {
+    log.info('所有组件均已有映射关系 ✔');
+    return;
+  }
+
+  const searchFiles = allKnownCodeFiles(registry);
+  const suggestions: MappingSuggestion[] = [];
+
+  // ── Step 1: Run auto strategies ─────────────────────────────────────────────
+
+  const autoSpinner = spinner(`正在对 ${unmappedEntries.length} 个未映射组件运行自动策略...`);
+  autoSpinner.start();
+
+  // Use threshold=0 so we surface ALL auto candidates (user decides what to accept)
+  const autoResult = await autoMap(unmappedEntries, searchFiles, codeRoot, {
+    threshold: 0,
+    designRoot,
+  });
+
+  autoSpinner.succeed(
+    `自动策略完成：${autoResult.mapped.length} 个找到候选，${autoResult.unmapped.length} 个未找到`,
+  );
+
+  // Collect auto suggestions
+  for (const { componentId, candidate } of autoResult.mapped) {
+    const component = registry.components[componentId];
+    if (!component) continue;
+    suggestions.push({
+      component,
+      codePath: candidate.codePath,
+      confidence: candidate.confidence,
+      reason: candidate.reason,
+      source: 'auto',
+    });
+  }
+
+  // ── Step 2: AI fallback for still-unmapped components ────────────────────────
+
+  const stillUnmappedIds = new Set(autoResult.unmapped);
+  const stillUnmapped = unmappedEntries.filter((e) => stillUnmappedIds.has(e.id));
+
+  if (stillUnmapped.length > 0 && !opts.noAi) {
+    const hasApiKey = Boolean(process.env['ANTHROPIC_API_KEY']);
+    if (!hasApiKey) {
+      log.dim(`  ${stillUnmapped.length} 个组件未找到候选（跳过 AI：未设置 ANTHROPIC_API_KEY）`);
+    } else {
+      const aiSpinner = spinner(`调用 AI 对 ${stillUnmapped.length} 个组件进行推断...`);
+      aiSpinner.start();
+
+      const aiResults = await suggestMappings(stillUnmapped, searchFiles, config);
+
+      const aiCount = aiResults.size;
+      aiSpinner.succeed(`AI 推断完成：${aiCount} 个找到建议，${stillUnmapped.length - aiCount} 个无合适候选`);
+
+      for (const [componentId, result] of aiResults) {
+        const component = registry.components[componentId];
+        if (!component) continue;
+        suggestions.push({
+          component,
+          codePath: result.codePath,
+          confidence: result.confidence,
+          reason: result.reasoning,
+          source: 'ai',
+        });
+      }
+    }
+  } else if (stillUnmapped.length > 0 && opts.noAi) {
+    log.dim(`  ${stillUnmapped.length} 个组件未找到候选（已跳过 AI，使用 --no-ai）`);
+  }
+
+  if (suggestions.length === 0) {
+    log.warn('未找到任何可用建议。请使用 codeferry map set <id> <path> 手动建立映射。');
+    return;
+  }
+
+  // ── Step 3: Display summary table ───────────────────────────────────────────
+
+  console.log();
+  const table = new Table({
+    head: [
+      chalk.cyan('#'),
+      chalk.cyan('组件'),
+      chalk.cyan('建议代码文件'),
+      chalk.cyan('置信度'),
+      chalk.cyan('来源'),
+      chalk.cyan('理由'),
+    ],
+    style: { head: [], border: [] },
+    colWidths: [4, 20, 34, 8, 6, 28],
+    wordWrap: true,
+  });
+
+  suggestions.forEach((s, i) => {
+    const pct = Math.round(s.confidence * 100);
+    const confColor = pct >= 90 ? chalk.green : pct >= 65 ? chalk.yellow : chalk.gray;
+    const srcLabel = s.source === 'ai' ? chalk.magenta('AI') : chalk.cyan('auto');
+    table.push([
+      String(i + 1),
+      truncate(s.component.name, 18),
+      truncate(s.codePath, 32),
+      confColor(`${pct}%`),
+      srcLabel,
+      truncate(s.reason, 26),
+    ]);
+  });
+
+  console.log(table.toString());
+  console.log();
+
+  // ── Step 4: Interactive review ───────────────────────────────────────────────
+
+  const accepted: Array<{ component: ComponentEntry; codePath: string }> = [];
+
+  for (const suggestion of suggestions) {
+    const pct = Math.round(suggestion.confidence * 100);
+    const srcTag = suggestion.source === 'ai'
+      ? chalk.magenta('[AI]')
+      : chalk.cyan('[auto]');
+
+    const { action } = await inquirer.prompt<{ action: string }>([{
+      type: 'list',
+      name: 'action',
+      message: `${chalk.bold(suggestion.component.name)} → ${chalk.dim(suggestion.codePath)} ${srcTag} ${pct}%`,
+      choices: [
+        { name: `✔ 接受`, value: 'accept' },
+        { name: `↩ 跳过`, value: 'skip' },
+        { name: `✎ 手动输入路径`, value: 'manual' },
+      ],
+    }]);
+
+    if (action === 'skip') continue;
+
+    if (action === 'manual') {
+      const { customPath } = await inquirer.prompt<{ customPath: string }>([{
+        type: 'input',
+        name: 'customPath',
+        message: `输入代码文件路径（相对于 code.root: ${config.code.root}）：`,
+        validate: (v: string) => v.trim().length > 0 || '路径不能为空',
+      }]);
+      accepted.push({ component: suggestion.component, codePath: customPath.trim() });
+    } else {
+      // accept
+      accepted.push({ component: suggestion.component, codePath: suggestion.codePath });
+    }
+  }
+
+  if (accepted.length === 0) {
+    log.info('未接受任何建议，注册表未修改。');
+    return;
+  }
+
+  // ── Step 5: Write accepted mappings ─────────────────────────────────────────
+
+  const applySpinner = spinner(`正在写入 ${accepted.length} 个映射关系...`);
+  applySpinner.start();
+
+  const newlyMapped = new Set<string>();
+
+  for (const { component, codePath } of accepted) {
+    const entry = registry.components[component.id];
+    if (!entry) continue;
+
+    let codeHash = '';
+    try {
+      const content = await readFile(join(codeRoot, codePath), 'utf8');
+      codeHash = hashMultiple([content]);
+    } catch {
+      // File may not exist yet (e.g., user typed a planned path) — allow empty hash
+    }
+
+    entry.codeFiles = [codePath];
+    entry.codeHash = codeHash;
+    entry.mappingType = 'auto';
+    entry.mappingConfidence = 0;
+
+    newlyMapped.add(component.id);
+  }
+
+  // Update unmappedDesign
+  registry.unmappedDesign = registry.unmappedDesign.filter((id) => !newlyMapped.has(id));
+
+  // Update unmappedCode: remove files that are now mapped
+  const allMappedFiles = new Set(
+    Object.values(registry.components).flatMap((e) => e.codeFiles),
+  );
+  registry.unmappedCode = registry.unmappedCode.filter((f) => !allMappedFiles.has(f));
+
+  registry.updatedAt = Date.now();
+  await store.saveRegistry(registry);
+
+  applySpinner.succeed('注册表已更新');
+  log.success(`已建立 ${accepted.length} 个映射关系`);
+
+  const remaining = unmappedEntries.length - accepted.length;
+  if (remaining > 0) {
+    log.dim(`  仍有 ${remaining} 个组件未映射，可用 codeferry map set <id> <path> 手动指定`);
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

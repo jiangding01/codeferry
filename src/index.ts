@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
-import { mapListCommand, mapAutoCommand, mapSetCommand, mapUnsetCommand } from './commands/map.js';
+import { mapListCommand, mapAutoCommand, mapSetCommand, mapUnsetCommand, mapSuggestCommand } from './commands/map.js';
 import { statusCommand } from './commands/status.js';
 import { diffCommand } from './commands/diff.js';
 import { syncCommand } from './commands/sync.js';
@@ -20,7 +20,7 @@ const program = new Command();
 program
   .name('codeferry')
   .description('CLI tool for bidirectional sync between Claude Design and Claude Code')
-  .version('0.5.1')
+  .version('0.6.0')
   .option('-w, --workspace <name>', '指定工作区（覆盖 state.json 中的当前工作区）');
 
 // ── codeferry init ───────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ mapCmd
 
 mapCmd
   .command('auto')
-  .description('运行自动映射策略（文件名匹配 + 导出名匹配）')
+  .description('运行自动映射策略（文件名匹配 + 导出名匹配 + HTML bridge）')
   .action(async () => {
     const globalOpts = program.opts();
     try {
@@ -95,6 +95,20 @@ mapCmd
     const globalOpts = program.opts();
     try {
       await mapUnsetCommand(id, { workspace: globalOpts.workspace });
+    } catch (err) {
+      console.error('Error:', err instanceof Error ? err.message : err);
+      process.exit(1);
+    }
+  });
+
+mapCmd
+  .command('suggest')
+  .description('AI 辅助映射：自动策略 + Claude API 推断，逐条交互确认')
+  .option('--no-ai', '跳过 AI 推断，仅使用自动策略候选')
+  .action(async (opts) => {
+    const globalOpts = program.opts();
+    try {
+      await mapSuggestCommand({ noAi: !opts.ai, workspace: globalOpts.workspace });
     } catch (err) {
       console.error('Error:', err instanceof Error ? err.message : err);
       process.exit(1);
