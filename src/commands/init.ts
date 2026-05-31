@@ -158,23 +158,23 @@ async function collectConventions(): Promise<string[]> {
 
 export async function initCommand(options: InitOptions): Promise<void> {
   const cwd = process.cwd();
-  const driftDir = resolve(cwd, '.drift');
+  const driftDir = resolve(cwd, '.codeferry');
   const store = new StateStore(driftDir);
 
   // check existing
   if (await store.exists() && !options.force) {
-    log.warn('.drift/ 目录已存在。使用 --force 强制重新初始化');
+    log.warn('.codeferry/ 目录已存在。使用 --force 强制重新初始化');
     return;
   }
 
   const designRoot = resolvePath(options.design);
   const codeRoot = resolvePath(options.code);
 
-  // Step 1: create .drift directory
-  const s1 = spinner('创建 .drift/ 目录...');
+  // Step 1: create .codeferry directory
+  const s1 = spinner('创建 .codeferry/ 目录...');
   s1.start();
   await store.init();
-  s1.succeed('已创建 .drift/ 目录');
+  s1.succeed('已创建 .codeferry/ 目录');
 
   // Step 2: detect stack (with interactive confirmation)
   let stackInfo: StackInfo = { designToCodeHints: [], codeToDesignHints: [] };
@@ -237,7 +237,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
   }
 
   await store.saveConfig(config);
-  log.success('配置已写入 drift.config.json');
+  log.success('配置已写入 codeferry.config.json');
 
   // Step 4: extract design components
   const s4 = spinner('正在提取设计稿组件...');

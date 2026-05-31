@@ -18,7 +18,7 @@ src/
 ├── commands/       # CLI command implementations (init, diff, sync, …)
 ├── core/           # Core logic (extractor, scanner, mapper, differ, analyzer)
 ├── output/         # Terminal UI and prompt generation
-├── state/          # .drift/ directory management (StateStore)
+├── state/          # .codeferry/ directory management (StateStore)
 ├── types/          # Shared TypeScript types
 └── utils/          # hash, path, logger helpers
 

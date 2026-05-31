@@ -153,10 +153,10 @@ function makeQueueId(componentId: string): string {
 
 export async function diffCommand(opts: DiffOptions = {}): Promise<void> {
   const cwd = process.cwd();
-  const store = new StateStore(resolve(cwd, '.drift'));
+  const store = new StateStore(resolve(cwd, '.codeferry'));
 
   if (!(await store.exists())) {
-    log.error('未找到 .drift/ 目录，请先运行 drift init');
+    log.error('未找到 .codeferry/ 目录，请先运行 codeferry init');
     process.exit(1);
   }
 

@@ -49,7 +49,7 @@ export class StateStore {
     } catch {
       throw new Error(
         `${filePath} 内容无效（JSON 解析失败）。` +
-        `如文件已损坏，请删除 .drift/ 目录后重新运行 drift init。`,
+        `如文件已损坏，请删除 .codeferry/ 目录后重新运行 drift init。`,
       );
     }
   }
@@ -65,11 +65,11 @@ export class StateStore {
   // ── Config ──
 
   async getConfig(): Promise<DriftConfig | null> {
-    return this.readJson<DriftConfig>(this.path('drift.config.json'));
+    return this.readJson<DriftConfig>(this.path('codeferry.config.json'));
   }
 
   async saveConfig(config: DriftConfig): Promise<void> {
-    await this.writeJson(this.path('drift.config.json'), config);
+    await this.writeJson(this.path('codeferry.config.json'), config);
   }
 
   // ── Registry ──

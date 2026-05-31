@@ -39,16 +39,16 @@ function allKnownCodeFiles(registry: ComponentRegistry): string[] {
 
 export async function mapListCommand(opts: { unmapped?: boolean }): Promise<void> {
   const cwd = process.cwd();
-  const store = new StateStore(resolve(cwd, '.drift'));
+  const store = new StateStore(resolve(cwd, '.codeferry'));
 
   if (!(await store.exists())) {
-    log.error('未找到 .drift/ 目录，请先运行 drift init');
+    log.error('未找到 .codeferry/ 目录，请先运行 codeferry init');
     process.exit(1);
   }
 
   const registry = await store.getRegistry();
   if (!registry) {
-    log.error('未找到 registry.json，请先运行 drift init');
+    log.error('未找到 registry.json，请先运行 codeferry init');
     process.exit(1);
   }
 
@@ -106,10 +106,10 @@ export async function mapListCommand(opts: { unmapped?: boolean }): Promise<void
 
 export async function mapAutoCommand(): Promise<void> {
   const cwd = process.cwd();
-  const store = new StateStore(resolve(cwd, '.drift'));
+  const store = new StateStore(resolve(cwd, '.codeferry'));
 
   if (!(await store.exists())) {
-    log.error('未找到 .drift/ 目录，请先运行 drift init');
+    log.error('未找到 .codeferry/ 目录，请先运行 codeferry init');
     process.exit(1);
   }
 
@@ -233,10 +233,10 @@ export async function mapAutoCommand(): Promise<void> {
 
 export async function mapSetCommand(componentId: string, codePath: string): Promise<void> {
   const cwd = process.cwd();
-  const store = new StateStore(resolve(cwd, '.drift'));
+  const store = new StateStore(resolve(cwd, '.codeferry'));
 
   if (!(await store.exists())) {
-    log.error('未找到 .drift/ 目录，请先运行 drift init');
+    log.error('未找到 .codeferry/ 目录，请先运行 codeferry init');
     process.exit(1);
   }
 
@@ -300,10 +300,10 @@ export async function mapSetCommand(componentId: string, codePath: string): Prom
 
 export async function mapUnsetCommand(componentId: string): Promise<void> {
   const cwd = process.cwd();
-  const store = new StateStore(resolve(cwd, '.drift'));
+  const store = new StateStore(resolve(cwd, '.codeferry'));
 
   if (!(await store.exists())) {
-    log.error('未找到 .drift/ 目录，请先运行 drift init');
+    log.error('未找到 .codeferry/ 目录，请先运行 codeferry init');
     process.exit(1);
   }
 

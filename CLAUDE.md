@@ -4,7 +4,7 @@
 
 codeferry is a **bidirectional sync CLI** between Claude Design (JSX prototypes) and Claude Code (production code). It never modifies source files directly — it generates context-rich Markdown prompts that the user pastes into Claude Code or Claude Design.
 
-**Key constraint:** The tool is framework-agnostic. Core logic (scanner, extractor, differ, mapper) must never hardcode framework-specific knowledge. Framework hints go in `drift.config.json → project.designToCodeHints` only.
+**Key constraint:** The tool is framework-agnostic. Core logic (scanner, extractor, differ, mapper) must never hardcode framework-specific knowledge. Framework hints go in `codeferry.config.json → project.designToCodeHints` only.
 
 ---
 
@@ -24,7 +24,7 @@ src/
 │   ├── reporter.ts    Terminal UI (chalk, ora, cli-table3)
 │   └── prompt-builder.ts  Markdown prompt generation for both sync directions
 ├── state/
-│   └── store.ts       .drift/ directory management — ALL file I/O goes here
+│   └── store.ts       .codeferry/ directory management — ALL file I/O goes here
 │                      Uses atomic write pattern: write to .tmp → fs.rename()
 ├── types/index.ts     All shared TypeScript types (single source of truth)
 └── utils/             hash.ts · path.ts · logger.ts
@@ -55,7 +55,7 @@ codeferry --version      # verify link works
 ## Core Architectural Rules
 
 ### 1. StateStore is the only I/O layer
-All reads/writes to `.drift/` must go through `StateStore` (`src/state/store.ts`). Never call `fs.*` directly in command files or core modules.
+All reads/writes to `.codeferry/` must go through `StateStore` (`src/state/store.ts`). Never call `fs.*` directly in command files or core modules.
 
 ### 2. Atomic writes — always
 `writeJson` uses `tmp → rename()`. Never write config/registry/queue directly with `writeFile` (data corruption on crash).
@@ -76,7 +76,7 @@ both changed                   → 'both-changed' (conflict)
 
 ### 6. StackInfo persistence
 `detectStack()` computes `designToCodeHints` / `codeToDesignHints`. These must be:
-- Persisted to `drift.config.json → project.designToCodeHints/codeToDesignHints` during `codeferry init`
+- Persisted to `codeferry.config.json → project.designToCodeHints/codeToDesignHints` during `codeferry init`
 - Read back from config in `codeferry sync` via `tryLoadStackInfo()`
 - Regenerated if user edits stack info in the init confirmation flow
 
@@ -130,10 +130,10 @@ refactor: extract hash computation to utils/hash.ts
 
 All types are in `src/types/index.ts` — single source of truth. Key types:
 
-- `DriftConfig` — persisted to `.drift/drift.config.json`
-- `ComponentRegistry` — persisted to `.drift/registry.json`
-- `FullSnapshot` — persisted to `.drift/snapshots/`
-- `SyncQueue` / `SyncQueueItem` — persisted to `.drift/queue.json`
+- `DriftConfig` — persisted to `.codeferry/codeferry.config.json`
+- `ComponentRegistry` — persisted to `.codeferry/registry.json`
+- `FullSnapshot` — persisted to `.codeferry/snapshots/`
+- `SyncQueue` / `SyncQueueItem` — persisted to `.codeferry/queue.json`
 - `StackInfo` — in-memory only (hints are extracted to `DriftConfig.project`)
 - `ComponentSyncStatus` — the 7-state enum driving all status UI
 

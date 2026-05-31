@@ -63,7 +63,7 @@ npm install --save-dev codeferry
 codeferry init --design ~/Downloads/my-design --code ~/my-project
 ```
 
-- Creates a `.drift/` directory in your current working directory (independent of both projects)
+- Creates a `.codeferry/` directory in your current working directory (independent of both projects)
 - Auto-detects the code-side tech stack with interactive confirmation
 - Extracts design components, scans code files, and takes an initial snapshot
 
@@ -229,7 +229,7 @@ Options:
 
 ## Configuration
 
-`codeferry init` generates `drift.config.json` inside the `.drift/` directory. You can edit it manually:
+`codeferry init` generates `codeferry.config.json` inside the `.codeferry/` directory. You can edit it manually:
 
 ```jsonc
 {
@@ -311,11 +311,11 @@ Without an API key, the tool works fully — AI analysis simply degrades to gene
 
 ---
 
-## `.drift/` Directory Structure
+## `.codeferry/` Directory Structure
 
 ```
-.drift/
-├── drift.config.json      # Config (design/code paths, AI settings, stack info)
+.codeferry/
+├── codeferry.config.json      # Config (design/code paths, AI settings, stack info)
 ├── registry.json          # Component registry (extracted components + mappings)
 ├── queue.json             # Sync queue (pending / in-progress / done / skipped)
 ├── snapshots/
@@ -325,7 +325,7 @@ Without an API key, the tool works fully — AI analysis simply degrades to gene
     └── *.md               # Generated prompt history
 ```
 
-The `.drift/` directory is independent of both projects — it won't pollute your code's git history and won't be overwritten by Claude Design exports.
+The `.codeferry/` directory is independent of both projects — it won't pollute your code's git history and won't be overwritten by Claude Design exports.
 
 ---
 
@@ -342,7 +342,7 @@ The `.drift/` directory is independent of both projects — it won't pollute you
 | Routing | App Router · Pages Router · React Router · Vue Router |
 | Component pattern | function declaration · arrow function |
 
-Detection results are stored in `drift.config.json`. All dimensions can be corrected during the interactive confirmation step in `codeferry init`.
+Detection results are stored in `codeferry.config.json`. All dimensions can be corrected during the interactive confirmation step in `codeferry init`.
 
 ---
 

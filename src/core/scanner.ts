@@ -20,7 +20,7 @@ export async function scan(options: ScanOptions): Promise<ScanResult> {
       '**/node_modules/**',
       '**/dist/**',
       '**/.git/**',
-      '**/.drift/**',
+      '**/.codeferry/**',
       ...options.exclude,
     ],
     absolute: false,

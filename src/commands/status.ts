@@ -95,10 +95,10 @@ function printChangedSection(
 
 export async function statusCommand(opts: StatusOptions = {}): Promise<void> {
   const cwd = process.cwd();
-  const store = new StateStore(resolve(cwd, '.drift'));
+  const store = new StateStore(resolve(cwd, '.codeferry'));
 
   if (!(await store.exists())) {
-    log.error('未找到 .drift/ 目录，请先运行 drift init');
+    log.error('未找到 .codeferry/ 目录，请先运行 codeferry init');
     process.exit(1);
   }
 
@@ -109,7 +109,7 @@ export async function statusCommand(opts: StatusOptions = {}): Promise<void> {
   ]);
 
   if (!registry) {
-    log.error('未找到注册表，请先运行 drift init');
+    log.error('未找到注册表，请先运行 codeferry init');
     process.exit(1);
   }
 

@@ -221,7 +221,7 @@ export async function analyzeComponents(
   }
 
   const client = new Anthropic({ apiKey });
-  // Default to Haiku for cost-effective batch analysis; override in drift.config.json
+  // Default to Haiku for cost-effective batch analysis; override in codeferry.config.json
   const model = config.ai?.model ?? 'claude-haiku-4-5';
   const maxConcurrency = config.ai?.maxConcurrency ?? 3;
   const limit = pLimit(maxConcurrency);

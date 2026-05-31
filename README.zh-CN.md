@@ -63,7 +63,7 @@ npm install --save-dev codeferry
 codeferry init --design ~/Downloads/my-design --code ~/my-project
 ```
 
-- 创建 `.drift/` 目录（放在你运行命令的工作目录，独立于两个项目）
+- 创建 `.codeferry/` 目录（放在你运行命令的工作目录，独立于两个项目）
 - 自动检测代码侧技术栈，交互式确认
 - 提取设计稿组件，扫描代码文件，建立初始快照
 
@@ -229,7 +229,7 @@ Options:
 
 ## 配置文件
 
-`codeferry init` 在 `.drift/` 目录下生成 `drift.config.json`，可以手动编辑：
+`codeferry init` 在 `.codeferry/` 目录下生成 `codeferry.config.json`，可以手动编辑：
 
 ```jsonc
 {
@@ -311,11 +311,11 @@ codeferry diff
 
 ---
 
-## `.drift/` 目录结构
+## `.codeferry/` 目录结构
 
 ```
-.drift/
-├── drift.config.json      # 配置（设计/代码路径、AI 设置、技术栈信息）
+.codeferry/
+├── codeferry.config.json      # 配置（设计/代码路径、AI 设置、技术栈信息）
 ├── registry.json          # 组件注册表（所有提取的组件及其映射关系）
 ├── queue.json             # 同步队列（pending / in-progress / done / skipped）
 ├── snapshots/
@@ -325,7 +325,7 @@ codeferry diff
     └── *.md               # 生成的 Prompt 历史记录
 ```
 
-`.drift/` 目录与两个项目均独立，不污染代码的 git 历史，也不会被 Claude Design 的导出覆盖。
+`.codeferry/` 目录与两个项目均独立，不污染代码的 git 历史，也不会被 Claude Design 的导出覆盖。
 
 ---
 
@@ -342,7 +342,7 @@ codeferry diff
 | 路由 | App Router · Pages Router · React Router · Vue Router |
 | 组件模式 | function 声明 · 箭头函数 |
 
-检测结果写入 `drift.config.json`，可以手动修改。所有检测维度均可在交互确认时修正。
+检测结果写入 `codeferry.config.json`，可以手动修改。所有检测维度均可在交互确认时修正。
 
 ---
 

@@ -99,12 +99,12 @@ npm link     # makes `codeferry` available globally
 
 ## 3. Project Setup — `codeferry init`
 
-`codeferry init` is a one-time setup that creates the `.drift/` state directory, detects your tech stack, extracts design components, scans code files, and takes an initial snapshot.
+`codeferry init` is a one-time setup that creates the `.codeferry/` state directory, detects your tech stack, extracts design components, scans code files, and takes an initial snapshot.
 
 ### Basic usage
 
 ```bash
-# Run from any directory — .drift/ is created in your CWD
+# Run from any directory — .codeferry/ is created in your CWD
 codeferry init \
   --design ~/Downloads/my-design/components \
   --code   ~/my-project
@@ -115,8 +115,8 @@ codeferry init \
 ```
 $ codeferry init --design ~/Downloads/picture-hub/components --code ~/danqing
 
-- Creating .drift/ directory...
-✔ .drift/ directory created
+- Creating .codeferry/ directory...
+✔ .codeferry/ directory created
 
 - Analyzing code-side tech stack...
 ✔ Stack detection complete
@@ -188,8 +188,8 @@ codeferry init --design ~/Downloads/my-design --code ~/my-project --skip-detect
 ### What gets created
 
 ```
-.drift/
-├── drift.config.json      # Config: paths, AI settings, stack info
+.codeferry/
+├── codeferry.config.json      # Config: paths, AI settings, stack info
 ├── registry.json          # All 139 extracted components (no mappings yet)
 ├── queue.json             # Empty sync queue
 └── snapshots/
@@ -202,7 +202,7 @@ codeferry init --design ~/Downloads/my-design --code ~/my-project --skip-detect
 |---|---|
 | `--design <path>` | Design root directory (required) |
 | `--code <path>` | Code root directory (required) |
-| `--force` | Re-initialize even if `.drift/` already exists |
+| `--force` | Re-initialize even if `.codeferry/` already exists |
 | `--skip-detect` | Skip tech stack detection (useful in CI or scripted setup) |
 
 ---
@@ -661,7 +661,7 @@ codeferry sync --to code --no-ai   # generic conversion hints (no intent analysi
 The prompt still contains:
 - Full design component source
 - Full code file content
-- Tech stack context (Next.js, Tailwind, etc. — from your `drift.config.json`)
+- Tech stack context (Next.js, Tailwind, etc. — from your `codeferry.config.json`)
 - Framework-specific conversion rules (generated at `codeferry init` time)
 
 What's missing without AI:
@@ -810,7 +810,7 @@ codeferry log --status done             # only completed syncs
 
 ## 16. Configuration File Reference
 
-`drift.config.json` is located at `.drift/drift.config.json`. You can edit it directly.
+`codeferry.config.json` is located at `.codeferry/codeferry.config.json`. You can edit it directly.
 
 ```jsonc
 {
@@ -919,7 +919,7 @@ codeferry init --force
 ### Full reset
 
 ```bash
-rm -rf .drift/
+rm -rf .codeferry/
 codeferry init --design ~/Downloads/my-design --code ~/my-project
 codeferry map auto
 codeferry snapshot
@@ -927,7 +927,7 @@ codeferry snapshot
 
 ### Update conventions only
 
-Edit `drift.config.json` directly:
+Edit `codeferry.config.json` directly:
 
 ```json
 "conventions": [
@@ -979,7 +979,7 @@ ls ~/my-project/package.json   # must exist
 
 # Skip detection and set manually
 codeferry init --skip-detect
-# Then edit .drift/drift.config.json directly
+# Then edit .codeferry/codeferry.config.json directly
 ```
 
 ### `codeferry diff` reports no changes after I updated the design
@@ -996,7 +996,7 @@ codeferry diff       # Now changes will show up
 Check if the changed design file matches your `include` glob:
 
 ```bash
-# In drift.config.json, design.include is usually:
+# In codeferry.config.json, design.include is usually:
 "include": ["**/*.jsx", "**/*.tsx"]
 # Make sure your file extension matches
 ```
@@ -1004,7 +1004,7 @@ Check if the changed design file matches your `include` glob:
 **Cause 3 — Design file is outside the `design.root`:**
 
 ```bash
-cat .drift/drift.config.json | grep "root"
+cat .codeferry/codeferry.config.json | grep "root"
 # Confirm the design root is correct
 ```
 
@@ -1061,13 +1061,13 @@ codeferry snapshot --component "extras.jsx::AccountPage"
 A: No. codeferry only generates Markdown prompt files. All actual code changes are performed by Claude Code or Claude Design when you paste the prompt. codeferry is a "prompt factory" — it never touches your source code.
 
 **Q: Where should I run `codeferry init`?**  
-A: From any directory. The `.drift/` folder is created in your **current working directory** (CWD). A common choice is a parent directory that sits above both your design and code directories, e.g.:
+A: From any directory. The `.codeferry/` folder is created in your **current working directory** (CWD). A common choice is a parent directory that sits above both your design and code directories, e.g.:
 
 ```
 ~/projects/             ← run codeferry init here
   design-exports/       ← --design path
   my-app/               ← --code path
-  .drift/               ← created here
+  .codeferry/               ← created here
 ```
 
 **Q: Can I use codeferry with a Vue or Svelte project?**  
@@ -1093,8 +1093,8 @@ codeferry diff --no-ai
 codeferry sync --to code --no-ai
 ```
 
-**Q: Can multiple developers share a `.drift/` directory?**  
-A: It's designed to be used by one developer per design↔code pair. For team use, commit `.drift/drift.config.json` and `.drift/registry.json` to source control (they're stable state), but add `.drift/queue.json` and `.drift/snapshots/` to `.gitignore` (they're ephemeral state).
+**Q: Can multiple developers share a `.codeferry/` directory?**  
+A: It's designed to be used by one developer per design↔code pair. For team use, commit `.codeferry/codeferry.config.json` and `.codeferry/registry.json` to source control (they're stable state), but add `.codeferry/queue.json` and `.codeferry/snapshots/` to `.gitignore` (they're ephemeral state).
 
 **Q: How do I update codeferry?**  
 A: `npm update -g codeferry` or `pnpm update -g codeferry`.

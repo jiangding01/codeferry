@@ -91,7 +91,7 @@
   - 设计稿组件提取
   - 代码文件扫描
   - 初始快照生成
-- **StateStore**（`src/state/store.ts`）：`.drift/` 目录管理，原子化 JSON 读写（tmp → rename）
+- **StateStore**（`src/state/store.ts`）：`.codeferry/` 目录管理，原子化 JSON 读写（tmp → rename）
 - **Scanner**（`src/core/scanner.ts`）：双目录文件扫描，SHA-256 hash + mtime，支持 fast-glob 规则
 - **Extractor**（`src/core/extractor.ts`）：设计稿组件边界提取
   - 花括号深度计数算法（不依赖 AST）
