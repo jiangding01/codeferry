@@ -4,7 +4,7 @@
   "description": "CLI tool for bidirectional sync between Claude Design and Claude Code projects",
   "type": "module",
   "bin": {
-    "drift": "./dist/index.js"
+    "drift": "dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,7 +25,7 @@
   "packageManager": "pnpm@11.5.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JiangDing1990/drift-sync.git"
+    "url": "git+https://github.com/JiangDing1990/drift-sync.git"
   },
   "homepage": "https://github.com/JiangDing1990/drift-sync#readme",
   "bugs": {
