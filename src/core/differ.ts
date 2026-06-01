@@ -248,9 +248,6 @@ export function generateComponentDiff(
  *   context lines       → gray
  */
 export function colorizeUnifiedDiff(patch: string): string {
-  // Import chalk lazily to keep this module free of ESM-only side effects in tests.
-  // We do a synchronous require-style trick by accepting it as a string operation.
-  // Actually chalk is already used as ESM — we just import it at the top of the file.
   return patch
     .split('\n')
     .map((line) => {

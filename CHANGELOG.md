@@ -16,7 +16,7 @@
   - `+` 添加行 → 绿色，`-` 删除行 → 红色，`@@` 块头 → 青色，文件头 → 粗体
 - **`--format json` 机器可读输出**：`codeferry diff --format json` 输出干净的 JSON 到 stdout，包含 `summary` + `components`（含 `designDiff`/`codeDiff` 文本字段），适合 CI 脚本、编辑器插件集成
   - JSON 模式下自动跳过 AI 分析、静默 spinner，退出码始终为 0（非零 CI 门控留 v0.8.0 的 `--ci` 标志）
-- 新增 14 个单元测试（`generateComponentDiff` + `colorizeUnifiedDiff`），总测试数升至 **115 个**
+- 新增 12 个单元测试（`generateComponentDiff` × 5 + `colorizeUnifiedDiff` × 7），总测试数升至 **115 个**
 
 ### 变更
 - `src/core/differ.ts` — `generateComponentDiff()` 重构为纯函数（不再有文件系统 I/O），接受 `baseline/current` 内容字符串，由调用方负责从快照读取内容

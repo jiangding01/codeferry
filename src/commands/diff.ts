@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import chalk from 'chalk';
 import { resolveStore } from '../state/resolve-store.js';
 import {
@@ -8,6 +6,7 @@ import {
   generateComponentDiff,
   colorizeUnifiedDiff,
 } from '../core/differ.js';
+import { readDesignSlice, readCodeSlice } from '../utils/content-reader.js';
 import { analyzeComponents } from '../core/analyzer.js';
 import { resolvePath } from '../utils/path.js';
 import { log } from '../utils/logger.js';
@@ -113,30 +112,6 @@ function printAiAnalysis(analysis: AIAnalysisResult): void {
     log.dim(`    注：${analysis.analysisNote}`);
   }
   console.log();
-}
-
-// ── Content readers ──────────────────────────────────────────────────────────
-
-async function readDesignContent(entry: ComponentEntry, designRoot: string): Promise<string> {
-  try {
-    const content = await readFile(join(designRoot, entry.designFile), 'utf8');
-    const lines = content.split('\n');
-    return lines.slice(entry.designStartLine - 1, entry.designEndLine).join('\n');
-  } catch {
-    return '';
-  }
-}
-
-async function readCodeContent(entry: ComponentEntry, codeRoot: string): Promise<string> {
-  if (entry.codeFiles.length === 0) return '';
-  try {
-    const contents = await Promise.all(
-      entry.codeFiles.map((f) => readFile(join(codeRoot, f), 'utf8').catch(() => '')),
-    );
-    return contents.filter(Boolean).join('\n\n// ── next file ──\n\n');
-  } catch {
-    return '';
-  }
 }
 
 // ── Queue helpers ────────────────────────────────────────────────────────────
@@ -252,8 +227,8 @@ export async function diffCommand(opts: DiffOptions = {}): Promise<void> {
   await Promise.all(
     candidates.map(async ({ entry }) => {
       const [design, code] = await Promise.all([
-        readDesignContent(entry, designRoot),
-        readCodeContent(entry, codeRoot),
+        readDesignSlice(entry, designRoot),
+        readCodeSlice(entry, codeRoot),
       ]);
       contentMap.set(entry.id, { design, code });
     }),
